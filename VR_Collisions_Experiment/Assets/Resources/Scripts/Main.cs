@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using UnitySocketIO;
+using UnitySocketIO.Events;
 
 public class Main : MonoBehaviour
 {
@@ -98,6 +100,9 @@ public class Main : MonoBehaviour
     public float m_endMoveTime          = 0.0f;
     public float m_prevTime             = 0.0f;
 
+    public SocketIOController io;
+    string m_userID = "";
+
     bool m_prev_withinBB_AOE        = false;
     bool m_prev_Colliding           = false;
 
@@ -113,6 +118,8 @@ public class Main : MonoBehaviour
     List<float> m_trackedPos_Z      = new List<float>();
     string m_experimentID;
 
+    public Vector3 HELLO_TEST = new Vector3(0.0f, 0.0f, 0.0f);
+
     void awake()
 	{
         Application.runInBackground = true;
@@ -122,6 +129,36 @@ public class Main : MonoBehaviour
     // init
     void Start()
     {
+        io.On("connect", (SocketIOEvent e) => {
+            io.Emit("newUser");
+        });
+
+        io.On("usersData", (SocketIOEvent e) => {
+            //this data will be in array form ...
+            UserObject[] userObjs = JSONHelper.FromJson<UserObject>(e.data);
+            for (int i = 0; i < userObjs.Length; i++)
+            {
+                UserObject user = userObjs[i];
+                //Debug.Log(userObjs[i].socketID);
+                if (!m_userID.Equals(user.socketID))
+                {
+                    m_otherUser.transform.position = new Vector3( user.x, m_otherUser.transform.position.y, user.z );
+                }
+            }
+
+            Debug.Log("usersData: " + e.data);
+        });
+
+        //when we receive a unique ID. We will use this to send data to the server (and identify ourselves)
+        io.On("givenID", (SocketIOEvent e) => {
+            UserObject uObj = JsonUtility.FromJson<UserObject>(e.data);
+            m_userID = uObj.socketID;
+            //Debug.Log( "id received: " + userID );
+            Debug.Log("givenID: " + m_userID);
+        });
+
+        io.Connect();
+
         //avatar default
         setMode(viewMode.VIEW_MODE_INTERSTITIAL);
         setMode_Future(viewMode.VIEW_MODE_AVATAR);
@@ -130,8 +167,15 @@ public class Main : MonoBehaviour
     void Update()
     {
         //check where HMD is (don't care about y-value)
-        Vector3 hmdPos = m_HMDCam.GetComponent<Transform>().position;
+        Vector3 hmdPos = HELLO_TEST;//m_HMDCam.GetComponent<Transform>().position;
         hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
+
+        UserObject userObj = new UserObject();
+        userObj.socketID = m_userID;
+        userObj.x = (int)hmdPos.x;
+        userObj.y = (int)hmdPos.y;
+        userObj.z = (int)hmdPos.z;
+        io.Emit("positionUpdate", JsonUtility.ToJson(userObj));
 
         float currTime = Time.time;
         if (currTime - m_prevTime > DATA_TIME_INTERVAL_S) {

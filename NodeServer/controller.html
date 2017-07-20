@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>controller test</title>
+        <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    </head>
+
+    <button id="leftButton">LEFT</button>
+    <button id="rightButton">RIGHT</button>
+    <!-- <button id="imageButton">IMAGE</button> -->
+
+    <body>
+        <h1>Controller Test</h1>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+
+            var socket = io();
+            //var socket = io("/namespace_controller");
+            //socket.connect("http://localhost:8080");
+
+            socket.on("usersData", (data) => {
+                //this data will be in array form ...
+                console.log("controller:message: " + data.message);
+            });
+
+            socket.on("connect", function(data) {
+                socket.emit( "newController", { message: "controller connected" } );
+            });
+
+            $(document).ready(function () {
+                // $('#leftButton').click( function() {
+                //   socket.emit( "left_from", "hello from Controller" );
+                // });
+
+                // $('#rightButton').click( function() {
+                //   socket.emit( "right_from", "hello from Controller" );
+                // });
+            });
+
+        </script>
+    </body>
+</html>

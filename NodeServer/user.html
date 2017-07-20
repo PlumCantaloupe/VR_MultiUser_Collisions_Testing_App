@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>user Test</title>
+        <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    </head>
+
+    <body>
+        <h1>Display Test</h1>
+        <!-- <img id="largeImage" src="" /> -->
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            let userID = 0;
+            let socket = io();
+            //var socket = io("/namespace_display");
+            //socket.connect("http://localhost:8080");
+
+            socket.on("connect", function(data) {
+                socket.emit("newUser");
+            });
+
+            socket.on("usersData", (data) => {
+                //this data will be in array form ...
+                console.log("user:message: " + JSON.stringify(data));
+            });
+
+            //when we receive a unique ID. We will use this to send data to the server (and identify ourselves)
+            socket.on( "givenID", (data) => {
+                userID = data.id;
+                console.log( "id received: " + userID );
+            });
+
+            //doc ready, let's send our movement
+            $(document).ready(function () {
+              $(document).mousemove( (event) => {  
+                  if ( userID > 0 ) {
+                    let dataObj = { id:userID, num1:event.pageX, num2:event.pageY, num3:0, message:""};
+                    console.log("mousemove: " + JSON.stringify(dataObj));
+                    socket.emit("positionUpdate", dataObj);
+                  }
+              });
+            });
+
+        </script>
+    </body>
+</html>
