@@ -12,7 +12,22 @@
 
         <script src="/socket.io/socket.io.js"></script>
         <script>
-            let userID = 0;
+            //!!want to load in JSOn object representing data we constantly send
+            function getUserObj(socketID, x, y, z, r, g, b, message)
+            {
+                let userObj = {};
+                userObj.socketID = socketID;
+                userObj.x = x;
+                userObj.y = y;
+                userObj.z = z;
+                userObj.r = r;
+                userObj.g = g;
+                userObj.b = b;
+                userObj.message = message;
+                return userObj;
+            }
+
+            let userID = "";
             let socket = io();
             //var socket = io("/namespace_display");
             //socket.connect("http://localhost:8080");
@@ -28,16 +43,16 @@
 
             //when we receive a unique ID. We will use this to send data to the server (and identify ourselves)
             socket.on( "givenID", (data) => {
-                userID = data.id;
+                userID = data.socketID;
                 console.log( "id received: " + userID );
             });
 
             //doc ready, let's send our movement
             $(document).ready(function () {
               $(document).mousemove( (event) => {  
-                  if ( userID > 0 ) {
-                    let dataObj = { id:userID, num1:event.pageX, num2:event.pageY, num3:0, message:""};
-                    console.log("mousemove: " + JSON.stringify(dataObj));
+                  if ( userID !== "" ) {
+                    let dataObj = getUserObj(userID, event.pageX, 0.0, event.pageY, 0, 0, 0, ""); ; //{ id:userID, num1:event.pageX, num2:event.pageY, num3:0, message:""};
+                    console.log("mousemove: " + dataObj);
                     socket.emit("positionUpdate", dataObj);
                   }
               });

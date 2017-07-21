@@ -7,8 +7,20 @@ const url = require('url');
 //MAX 8 Users .... for now
 const MAX_USERS = 8;
 
-//want to load in JSOn object representing data we constantly send
-var userObj_proto = JSON.parse(fs.readFileSync(__dirname + '/UserObject.json', 'utf8'));
+//!!want to load in JSOn object representing data we constantly send
+function getUserObj(socketID, x, y, z, r, g, b, message)
+{
+    let userObj = {};
+    userObj.socketID = socketID;
+    userObj.x = x;
+    userObj.y = y;
+    userObj.z = z;
+    userObj.r = r;
+    userObj.g = g;
+    userObj.b = b;
+    userObj.message = message;
+    return userObj;
+}
 
 //8 color
 let colorPalette = [
@@ -23,7 +35,7 @@ let colorPalette = [
 ];
 
 // Loading the index file . html displayed to the client
-var server = http.createServer(function(req, res) {
+const server = http.createServer(function(req, res) {
     var path = url.parse(req.url).pathname;
 
     fs.readFile(__dirname + path, function(error, data){
@@ -60,11 +72,7 @@ io.on('connection', function (socket) {
         }
         else {
             const userCol = selectNewColor();
-            let userObj = userObjCopy(); //create new user obj
-            userObj.socketID = socket.id;
-            userObj.r        = userCol.r;
-            userObj.g        = userCol.g;
-            userObj.b        = userCol.b;
+            let userObj = getUserObj(socket.id, 0.0, 0.0, 0.0, userCol.r, userCol.g, userCol.b, "");
             socket.emit("givenID", userObj);
             allPositions.push( userObj ); //add new empty user with correct ID. We will update position later
         }
@@ -133,11 +141,6 @@ function removeUser( socketID )
             }
         }
     }
-}
-
-function userObjCopy()
-{
-    return JSON.parse( JSON.stringify(userObj_proto) );
 }
 
 function selectNewColor()
