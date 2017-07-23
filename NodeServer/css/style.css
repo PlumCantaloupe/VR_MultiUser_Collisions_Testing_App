@@ -1,0 +1,76 @@
+﻿body {
+    background-color: #000000;
+}
+
+#iframeWrapper {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#dpiframe {
+    position: absolute;
+    display: block;
+    border: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.section {
+    font-size: 0px;
+    letter-spacing: 0px;
+    word-spacing: 0px;
+}
+
+button {
+    border: 0px;
+    padding: 10px;
+    background-color: #727272;
+    font-family: Arial;
+    color: #fff;
+    line-height: 30px;
+    letter-spacing: 0em;
+    word-spacing: 0em;
+    font-size: 30px;
+}
+
+@media (min-width: 600px) {
+  button {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  button {
+    font-size: 3vw;
+  }
+}
+
+
+.oneAcross {
+    margin: 8px 0.6666% 0 0.6666%;
+    width: 98.6666%;
+}
+
+.twoAcross {
+    margin: 8px 0.6666% 0 0.6666%;
+    width: 48.6666%;
+}
+
+.threeAcross {
+    margin: 8px 0.6666% 0 0.6666%;
+    width: 32%;
+}
+
+button:first-child {
+    /* margin-left: 0px; */
+}
+
+button:last-child {
+     /* margin-right: 0px;  */
+}
+
+button:hover, button:focus 
+{
+    background-color: #939393;
+}

@@ -3,12 +3,28 @@
     <head>
         <meta charset="utf-8" />
         <title>user Test</title>
+        <link rel="stylesheet" type="text/css" href="css/reset.css">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
     </head>
 
     <body>
-        <h1>Display Test</h1>
-        <!-- <img id="largeImage" src="" /> -->
+        <div id="Experiment_Section" class="section">
+            <button id="Exp_New_B" class="threeAcross">New Experiment</button>
+            <button id="Exp_End_B" class="threeAcross">End Experiment</button>
+            <button id="Debug_B" class="threeAcross">Debug Toggle</button>
+        </div>
+        <div id="Live_Section">
+
+        </div>
+        <div id="Mode_Section" class="section">
+            <button id="Mode_Avatar_B" class="threeAcross">Avatar</button>
+            <button id="Mode_BB_B" class="threeAcross">Bounding Box</button>
+            <button id="Mode_Hybrid_B" class="threeAcross">Hybrid</button>
+        </div>
+        <div id="Trial_Section" class="section">
+            <button id="Trial_New_B" class="oneAcross">New Trial</button>
+        </section>
 
         <script src="/socket.io/socket.io.js"></script>
         <script>
