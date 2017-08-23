@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>user Test</title>
+        <link rel="stylesheet" type="text/css" href="css/reset.css">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    </head>
+
+    <body>
+        <div id="Experiment_Section" class="section">
+            <button id="Exp_New_B" class="threeAcross">New Experiment</button>
+            <button id="Exp_End_B" class="threeAcross">End Experiment</button>
+            <button id="Debug_B" class="threeAcross">Debug Toggle</button>
+        </div>
+        <div id="Live_Section">
+            <div id="DisplayWrapper">
+                <div id="Display">
+                    <!-- <div style="width:30px; height:30px; top:0px; left:30px; background-color:#aaa; position:absolute;" ></div> -->
+                    <!-- <div style="width:30px; height:30px; top:40px; left:100px; background-color:#000; position:absolute;" ></div> -->
+                </div>
+            </div>
+        </div>
+        <div id="Mode_Section" class="section">
+            <button id="Mode_Avatar_B" class="threeAcross">Avatar</button>
+            <button id="Mode_BB_B" class="threeAcross">Bounding Box</button>
+            <button id="Mode_Hybrid_B" class="threeAcross">Hybrid</button>
+        </div>
+        <div id="Trial_Section" class="section">
+            <button id="Trial_New_B" class="oneAcross">New Trial</button>
+        </section>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            // !!want to load in JSOn object representing data we constantly send
+            function getUserObj(id, x, y, z, r, g, b, data)
+            {
+                let userObj = {};
+                userObj.id = id;
+                userObj.x = x;
+                userObj.y = y;
+                userObj.z = z;
+                userObj.r = r;
+                userObj.g = g;
+                userObj.b = b;
+                userObj.data = data;
+                return userObj;
+            }
+
+            function map(value, in_min, in_max, out_min, out_max, doClamp)
+            {
+                let val = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+                if (doClamp) {
+                    val = Math.min( Math.max(val, out_min), out_max );
+                }
+                return val;
+            }
+
+            //https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+            function uuidv4() {
+                return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
+            }
+
+            let userID = "";
+            let socket = io();
+            //var socket = io("/namespace_display");
+            //socket.connect("http://localhost:8080");
+
+            socket.on("connect", (data) => {
+                //userID = uuidv4();
+                //socket.emit("newUser", {'id':userID});
+                socket.emit("newUser");
+            });
+
+            socket.on("user_connect", (data) => {
+                if ( userID === "" ) {
+                    userID = data.id;
+                    console.log( "id received: " + userID );
+                }
+            });
+
+            socket.on("user_disconnect", (data) => {
+                //!!TODO
+            });
+
+            socket.on("usersData", (data) => {
+                //this data will be in array form ...
+                //console.log("user:message: " + JSON.stringify(data));
+                
+                for ( let i = 0; i < data.items.length; i++ ) {
+                    let userObj                 = data.items[i];
+                    let hasBeenInitiatialized   = false;
+
+                    //first check if there is element exist, and update if so
+                    $(".userElem").each( (index, obj) => {
+                        let elem = $(obj);
+                        if ( elem.attr("id") === userObj.id ) {
+                            hasBeenInitiatialized = true;
+                            const scalar_x = $("#Display").width() - $(".userElem").first().width();
+                            const scalar_y = $("#Display").height() - $(".userElem").first().height();
+                            elem.css("left", userObj.x * scalar_x);
+                            elem.css("top", userObj.z * scalar_y);
+                        }
+                    });
+
+                    if ( !hasBeenInitiatialized ) {
+                        //add new user
+                        let newElem = document.createElement('div');
+                        $(newElem).attr("id", userObj.id);
+                        $(newElem).addClass("userElem");
+                        $(newElem).css("background-color", "rgb(" + userObj.r + "," + userObj.g + "," + userObj.b + ")");
+                        $(newElem).appendTo("#Display");
+                    }
+                }
+
+                // $(".userElem").each( (index, obj) => {
+                //     let elem = $(obj);                    
+                //     for ( let i = 0; i < data.items.length; i++ ) {
+                //         let userObj = data.items[i];
+                //         if ( elem.attr("id") === userObj.id ) {
+                //             const scalar_x = $("#Display").width();
+                //             const scalar_y = $("#Display").height();
+                //             elem.css("left", userObj.x * scalar_x);
+                //             elem.css("top", userObj.z * scalar_y);
+
+                //             // console.log(scalar_x);
+                //             // console.log(scalar_y);
+                //         }
+                //     }
+                // });
+            });
+
+            //doc ready, let's send our movement
+            $(document).ready(function () {
+                let leftButtonDown = false;
+
+                $(document).mousemove( (event) => {  
+                    if ( userID !== "" ) {
+                        if (leftButtonDown) {
+                            const elem          = $("#Display");
+                            const position      = elem.position();
+                            const elemLeft      = position.left;
+                            const elemRight     = elemLeft + elem.width();
+                            const elemTop       = position.top;
+                            const elemBottom    = elemTop + elem.height();
+                            const userElem_HW   = $(".userElem").first().width() * 0.5;
+                            const userElem_HH   = $(".userElem").first().height() * 0.5;
+                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
+                            const mappedY       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
+                            const dataObj       = getUserObj(userID, mappedX, 0.0, mappedY, 0, 0, 0, {}); //{ id:userID, num1:event.pageX, num2:event.pageY, num3:0, data:{}};
+                            
+                            socket.emit("posUpdate", dataObj);
+                        }
+                    }
+
+                    $(document).mousedown( (event) => {  
+                        if(event.which === 1) { 
+                            leftButtonDown = true;
+                        }
+                    });
+
+                    $(document).mouseup( (event) => {  
+                        if(event.which === 1) { 
+                            leftButtonDown = false;
+                        }
+                    });
+
+              });
+            });
+
+        </script>
+    </body>
+</html>
