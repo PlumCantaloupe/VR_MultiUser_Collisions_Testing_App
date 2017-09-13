@@ -155,7 +155,7 @@ io.on('connection', (socket) => {
     if (!setIntervalFunc) {
         console.log("setting interval func");
         setIntervalFunc = setInterval( () => {
-            console.log("looping ....");
+            //console.log("looping ....");
 
             //if removed users makes numUsers == 0 may as well stop/clear loop
             if (users.length === 0) {
