@@ -90,9 +90,9 @@
                 }
             });
 
-            socket.on("user_disconnect", (data) => {
-                //!!TODO
-            });
+            // socket.on("user_disconnect", (data) => {
+            //     //!!TODO
+            // });
 
             socket.on("usersData", (data) => {
                 //this data will be in array form ...
@@ -142,7 +142,6 @@
                     function update() 
                     {
                         // Update the state of the world for the elapsed time since last render
-
                         if ($(".userElem").length > usersArr.length) {
                             //someone has disconnected
                             let idFound     = false;
