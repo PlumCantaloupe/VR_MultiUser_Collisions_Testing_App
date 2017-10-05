@@ -133,88 +133,88 @@ public class Main : MonoBehaviour
 
     void Update()
     {
-        //check where HMD is (don't care about y-value)
-        Vector3 hmdPos = HELLO_TEST;//m_HMDCam.GetComponent<Transform>().position;
-        hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
+        ////check where HMD is (don't care about y-value)
+        //Vector3 hmdPos = HELLO_TEST;//m_HMDCam.GetComponent<Transform>().position;
+        //hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
 
-        checkforPillarCollision(hmdPos);
-        adjustBoundingBoxTransparency(hmdPos);
-        checkForCollisions(hmdPos);
+        //checkforPillarCollision(hmdPos);
+        //adjustBoundingBoxTransparency(hmdPos);
+        //checkForCollisions(hmdPos);
     }
     
     public void startExperiment()
     {
-        m_trialCounter = 0;
-        m_experimentID = System.DateTime.Now.ToString("yyyy_MM_dd-hh_mm");
-        m_experimentInSession = true;
+        //m_trialCounter = 0;
+        //m_experimentID = System.DateTime.Now.ToString("yyyy_MM_dd-hh_mm");
+        //m_experimentInSession = true;
     }
 
     //not really necessary but have it in for the future
     public void stopExperiment()
     {
-        m_experimentInSession = false;
+        //m_experimentInSession = false;
     }
 
     public void startTrial()
     {
-        if ( !m_experimentInSession ) {
-            startExperiment();
-        }
+        //if ( !m_experimentInSession ) {
+        //    startExperiment();
+        //}
 
-        //reset everything possible to current conditions
-        m_trialCounter++;
+        ////reset everything possible to current conditions
+        //m_trialCounter++;
 
-        m_trialType             = (int)m_futureViewMode;
-        m_fromPillar            = m_collidedPillar.GetComponent<Pillar>().m_id;
-        m_ToPillar              = m_selectedPillar.GetComponent<Pillar>().m_id;
-        m_chosenSurveyButton    = -1;
-        m_numCollisions         = 0;
-        m_trackedAnxiety.Clear();
-        m_trackedTime.Clear();
-        m_trackedPos_X.Clear();
-        m_trackedPos_Z.Clear();
+        //m_trialType             = (int)m_futureViewMode;
+        //m_fromPillar            = m_collidedPillar.GetComponent<Pillar>().m_id;
+        //m_ToPillar              = m_selectedPillar.GetComponent<Pillar>().m_id;
+        //m_chosenSurveyButton    = -1;
+        //m_numCollisions         = 0;
+        //m_trackedAnxiety.Clear();
+        //m_trackedTime.Clear();
+        //m_trackedPos_X.Clear();
+        //m_trackedPos_Z.Clear();
 
-        m_collidedPillar = null;
+        //m_collidedPillar = null;
 
-        float currTime      = Time.time;
-        m_startMoveTime     = currTime;
-        m_prevTime          = 0.0f;
-        m_endMoveTime       = 0.0f;
-        m_prev_withinBB_AOE = true; //this needs to be true so that it is not flipped immediately
-        m_prev_Colliding    = true; //this needs to be true so that it is not flipped immediately
-        m_trialInSession    = true;
+        //float currTime      = Time.time;
+        //m_startMoveTime     = currTime;
+        //m_prevTime          = 0.0f;
+        //m_endMoveTime       = 0.0f;
+        //m_prev_withinBB_AOE = true; //this needs to be true so that it is not flipped immediately
+        //m_prev_Colliding    = true; //this needs to be true so that it is not flipped immediately
+        //m_trialInSession    = true;
 
-        setMode(m_futureViewMode);
+        //setMode(m_futureViewMode);
     }
 
     public void stopTrial()
     {
-        //log all data to a text file as a .
-        string path = @"D:\Dropbox\Temp_Workspace\VR_Experimental_Data__" + m_experimentID + "__" + m_trialCounter + "-" + m_viewModePrev + "-" + m_userPosition + ".csv";
-        if (!File.Exists(path)) {
-            // Create a .csv file to write to  (used custom function for list types)
-            using (StreamWriter sw = File.CreateText(path)) 
-            {
-                sw.WriteLine("Experiment ID,"   + m_experimentID);
-                sw.WriteLine("Trial,"           + m_trialCounter);
-                sw.WriteLine("View Type,"       + m_viewModePrev);
-                sw.WriteLine("Collision Type,"  + m_userPosition);
-                sw.WriteLine("From Pillar,"     + m_fromPillar);
-                sw.WriteLine("To Pillar,"       + m_ToPillar);
-                sw.WriteLine("Survey Response," + m_chosenSurveyButton);
-                sw.WriteLine("Movement Time,"   + (m_endMoveTime - m_startMoveTime).ToString());
-                sw.WriteLine("Num Collisions,"  + m_numCollisions);
+        ////log all data to a text file as a .
+        //string path = @"D:\Dropbox\Temp_Workspace\VR_Experimental_Data__" + m_experimentID + "__" + m_trialCounter + "-" + m_viewModePrev + "-" + m_userPosition + ".csv";
+        //if (!File.Exists(path)) {
+        //    // Create a .csv file to write to  (used custom function for list types)
+        //    using (StreamWriter sw = File.CreateText(path)) 
+        //    {
+        //        sw.WriteLine("Experiment ID,"   + m_experimentID);
+        //        sw.WriteLine("Trial,"           + m_trialCounter);
+        //        sw.WriteLine("View Type,"       + m_viewModePrev);
+        //        sw.WriteLine("Collision Type,"  + m_userPosition);
+        //        sw.WriteLine("From Pillar,"     + m_fromPillar);
+        //        sw.WriteLine("To Pillar,"       + m_ToPillar);
+        //        sw.WriteLine("Survey Response," + m_chosenSurveyButton);
+        //        sw.WriteLine("Movement Time,"   + (m_endMoveTime - m_startMoveTime).ToString());
+        //        sw.WriteLine("Num Collisions,"  + m_numCollisions);
 
-                //now list out all tracked data as per const interval
-                sw.WriteLine("Tracked Time"         + convertListToString(m_trackedTime));
-                sw.WriteLine("Tracked Positions X"  + convertListToString(m_trackedPos_X));
-                sw.WriteLine("Tracked Positions Z"  + convertListToString(m_trackedPos_Z));
-                sw.WriteLine("Tracked Anxiety"      + convertListToString(m_trackedAnxiety));
-            }
-        }
+        //        //now list out all tracked data as per const interval
+        //        sw.WriteLine("Tracked Time"         + convertListToString(m_trackedTime));
+        //        sw.WriteLine("Tracked Positions X"  + convertListToString(m_trackedPos_X));
+        //        sw.WriteLine("Tracked Positions Z"  + convertListToString(m_trackedPos_Z));
+        //        sw.WriteLine("Tracked Anxiety"      + convertListToString(m_trackedAnxiety));
+        //    }
+        //}
 
-        //GetComponent<Networking>().endTrialMessage_Send();
-        setMode( viewMode.VIEW_MODE_INTERSTITIAL);
+        ////GetComponent<Networking>().endTrialMessage_Send();
+        //setMode( viewMode.VIEW_MODE_INTERSTITIAL);
     }
 
     string convertListToString( List<float> _floatList)
@@ -228,65 +228,65 @@ public class Main : MonoBehaviour
 
     void checkforPillarCollision(Vector3 _hmdPos)
     {
-        foreach ( GameObject pillar in m_pillars ) {
-            Vector3 pillarPos =pillar.GetComponent<Transform>().position;
-            pillarPos.y = 0.0f;
-            Vector3 diffVec = _hmdPos - pillarPos;
+        //foreach ( GameObject pillar in m_pillars ) {
+        //    Vector3 pillarPos =pillar.GetComponent<Transform>().position;
+        //    pillarPos.y = 0.0f;
+        //    Vector3 diffVec = _hmdPos - pillarPos;
 
-            if (diffVec.sqrMagnitude < PILLARCOLLISION_EFFECT_RADIUS_SQR) {
-                //user is on top of pillar
-                if (pillar == m_selectedPillar && m_trialInSession) {
-                    showSurvey();
-                } else {
-                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
-                    m_collidedPillar = pillar;
-                }
+        //    if (diffVec.sqrMagnitude < PILLARCOLLISION_EFFECT_RADIUS_SQR) {
+        //        //user is on top of pillar
+        //        if (pillar == m_selectedPillar && m_trialInSession) {
+        //            showSurvey();
+        //        } else {
+        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
+        //            m_collidedPillar = pillar;
+        //        }
 
-                break; //no need to check the rest as we can only be in one place at a time ;)
-            }
-            else {
-                if (pillar == m_selectedPillar) {
-                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OnHighlight);
-                }
-                else {
-                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
-                }
-            }
-        }
+        //        break; //no need to check the rest as we can only be in one place at a time ;)
+        //    }
+        //    else {
+        //        if (pillar == m_selectedPillar) {
+        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OnHighlight);
+        //        }
+        //        else {
+        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+        //        }
+        //    }
+        //}
     }
 
     void adjustBoundingBoxTransparency(Vector3 _hmdPos)
     {
-        if (m_viewMode == viewMode.VIEW_MODE_BOUNDINGBOX) {
-            Vector3 avatarPos = m_otherUser.GetComponent<Transform>().position;
-            avatarPos.y = 0.0f;
-            Vector3 diffVec = _hmdPos - avatarPos;
-            float sqrMag = diffVec.sqrMagnitude;
+        //if (m_viewMode == viewMode.VIEW_MODE_BOUNDINGBOX) {
+        //    Vector3 avatarPos = m_otherUser.GetComponent<Transform>().position;
+        //    avatarPos.y = 0.0f;
+        //    Vector3 diffVec = _hmdPos - avatarPos;
+        //    float sqrMag = diffVec.sqrMagnitude;
 
-            //float newAlpha = map(sqrMag, 0.0f, BOUNDINGBOX_EFFECT_RADIUS_SQR, 1.0f, 0.0f);
-            //newAlpha = Mathf.Clamp(newAlpha, 0.0f, 1.0f);
-            //Color col = m_otherUser_BoundingBox.GetComponent<Renderer>().material.GetColor("_Color");
-            //col.a = newAlpha;
-            //m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", col);
+        //    //float newAlpha = map(sqrMag, 0.0f, BOUNDINGBOX_EFFECT_RADIUS_SQR, 1.0f, 0.0f);
+        //    //newAlpha = Mathf.Clamp(newAlpha, 0.0f, 1.0f);
+        //    //Color col = m_otherUser_BoundingBox.GetComponent<Renderer>().material.GetColor("_Color");
+        //    //col.a = newAlpha;
+        //    //m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", col);
 
-            if (sqrMag < BOUNDINGBOX_EFFECT_RADIUS_SQR) {
-                if (!m_prev_withinBB_AOE) {
-                    LeanTween.alpha(m_otherUser_BoundingBox, 1.0f, BOUNDINGBOX_ALPHA__EASE_TIME).setEase(LeanTweenType.easeInOutQuad);
-                    m_prev_withinBB_AOE = true;
-                }
-            }
-            else {
-                if (m_prev_withinBB_AOE) {
-                    LeanTween.alpha(m_otherUser_BoundingBox, 0.0f, BOUNDINGBOX_ALPHA__EASE_TIME).setEase(LeanTweenType.easeInOutQuad);
-                    m_prev_withinBB_AOE = false;
-                }
-            }
-        }
-        //else {
-        //    Color col = m_otherUser_BoundingBox.GetComponent<Renderer>().material.GetColor("_Color");
-        //    col.a = 0.0f;
-        //    m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", col);
+        //    if (sqrMag < BOUNDINGBOX_EFFECT_RADIUS_SQR) {
+        //        if (!m_prev_withinBB_AOE) {
+        //            LeanTween.alpha(m_otherUser_BoundingBox, 1.0f, BOUNDINGBOX_ALPHA__EASE_TIME).setEase(LeanTweenType.easeInOutQuad);
+        //            m_prev_withinBB_AOE = true;
+        //        }
+        //    }
+        //    else {
+        //        if (m_prev_withinBB_AOE) {
+        //            LeanTween.alpha(m_otherUser_BoundingBox, 0.0f, BOUNDINGBOX_ALPHA__EASE_TIME).setEase(LeanTweenType.easeInOutQuad);
+        //            m_prev_withinBB_AOE = false;
+        //        }
+        //    }
         //}
+        ////else {
+        ////    Color col = m_otherUser_BoundingBox.GetComponent<Renderer>().material.GetColor("_Color");
+        ////    col.a = 0.0f;
+        ////    m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", col);
+        ////}
     }
 
     //void showGameObject( GameObject _gameObject, bool _show )
@@ -304,183 +304,183 @@ public class Main : MonoBehaviour
 
     void checkForCollisions(Vector3 _hmdPos)
     {
-        if ((m_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) || (m_viewMode != viewMode.VIEW_MODE_SURVEY) || (m_userPosition != userPosition.otherPos_NONE)) {
-            //m_prev_Colliding
-            Vector3 diffVec = _hmdPos - m_otherUser.transform.position;
-            if (diffVec.sqrMagnitude < COLLISION_OTHERUSER_EFFECT_RADIUS_SQR) {
-                if (!m_prev_Colliding) {
-                    m_numCollisions++;
-                    m_prev_Colliding = true;
+        //if ((m_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) || (m_viewMode != viewMode.VIEW_MODE_SURVEY) || (m_userPosition != userPosition.otherPos_NONE)) {
+        //    //m_prev_Colliding
+        //    Vector3 diffVec = _hmdPos - m_otherUser.transform.position;
+        //    if (diffVec.sqrMagnitude < COLLISION_OTHERUSER_EFFECT_RADIUS_SQR) {
+        //        if (!m_prev_Colliding) {
+        //            m_numCollisions++;
+        //            m_prev_Colliding = true;
 
-                    m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
-                    m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
-                }
-            }
-            else {
-                if (m_prev_Colliding) {
-                    m_prev_Colliding = false;
+        //            m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+        //            m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+        //        }
+        //    }
+        //    else {
+        //        if (m_prev_Colliding) {
+        //            m_prev_Colliding = false;
 
-                    m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
-                    m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);  
-                }
-            }
-        }
+        //            m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
+        //            m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);  
+        //        }
+        //    }
+        //}
     }
 
     //functions for research
     public void activatePillar( GameObject _pillar, bool _activate )
     {
-        m_selectedPillar = (_activate) ? _pillar : null;
-        _pillar.GetComponent<Renderer>().material.SetColor("_Color", (_activate) ? m_Pillar_OnHighlight : m_Pillar_OffHighlight);
+        //m_selectedPillar = (_activate) ? _pillar : null;
+        //_pillar.GetComponent<Renderer>().material.SetColor("_Color", (_activate) ? m_Pillar_OnHighlight : m_Pillar_OffHighlight);
 	}
 
 	public void moveOtherUser( GameObject _otherUser, userPosition _userPos, float _easeTime )
     {
-        m_userPosition = _userPos;
+        //m_userPosition = _userPos;
 
-        if ( m_userPosition == userPosition.otherPos_NONE) {
-            _otherUser.SetActive(false);
-        }
-        else {
-            _otherUser.SetActive(true);
-            _otherUser.transform.position = m_otherPositions[(int)_userPos];
-            //Vector3 oldPos = _otherUser.GetComponent<Transform>().position;
-            //LeanTween.move(_otherUser, m_otherPositions[(int)_userPos], _easeTime).setEase(LeanTweenType.easeInOutQuad);
-        }
+        //if ( m_userPosition == userPosition.otherPos_NONE) {
+        //    _otherUser.SetActive(false);
+        //}
+        //else {
+        //    _otherUser.SetActive(true);
+        //    _otherUser.transform.position = m_otherPositions[(int)_userPos];
+        //    //Vector3 oldPos = _otherUser.GetComponent<Transform>().position;
+        //    //LeanTween.move(_otherUser, m_otherPositions[(int)_userPos], _easeTime).setEase(LeanTweenType.easeInOutQuad);
+        //}
     }
 
 	public void showSurvey()
 	{
-        m_endMoveTime = Time.time;
-        m_trialInSession = false;
-        setMode(viewMode.VIEW_MODE_SURVEY);
+        //m_endMoveTime = Time.time;
+        //m_trialInSession = false;
+        //setMode(viewMode.VIEW_MODE_SURVEY);
 	}
 
     public void submitSurvey()
     {
-        stopTrial();
+        //stopTrial();
 
-        //GetComponent<Networking>().surveyMessage_Send(m_chosenSurveyButton);
-        resetSurvey();
-        setMode(viewMode.VIEW_MODE_INTERSTITIAL);
+        ////GetComponent<Networking>().surveyMessage_Send(m_chosenSurveyButton);
+        //resetSurvey();
+        //setMode(viewMode.VIEW_MODE_INTERSTITIAL);
     }
 
     public void resetSurvey()
     {
-        m_chosenSurveyButton = -1;
-        removeSurveyHighlights();
+        //m_chosenSurveyButton = -1;
+        //removeSurveyHighlights();
     }
 
     //some code for a custom in-game "form" billboard (always facing user)
     public void interactWithSurveyButton( GameObject _selection, bool _clicked )
     {
-        _selection.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_Highlight_Col); //highlight
+        //_selection.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_Highlight_Col); //highlight
 
-        SurveyButton surveyBut = _selection.GetComponent<SurveyButton>();
-        if (surveyBut) {
-            if (_clicked) {
-                m_chosenSurveyButton = surveyBut.m_id;  //found survey button
-                //_selection.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_ON_Col);
-                Debug.Log("Survey Response Noted: " + m_chosenSurveyButton);
-            }
-        }
-        else {
-            //try to see if submit button
-            SubmitSurveyButton submitBut = _selection.GetComponent<SubmitSurveyButton>();
-            if (submitBut) {
-                if (_clicked) {
-                    if ( m_chosenSurveyButton > -1 ) {
-                        submitSurvey();
-                        Debug.Log("Survey Submitted");
-                    }   
-                }   
-            }
-        }
+        //SurveyButton surveyBut = _selection.GetComponent<SurveyButton>();
+        //if (surveyBut) {
+        //    if (_clicked) {
+        //        m_chosenSurveyButton = surveyBut.m_id;  //found survey button
+        //        //_selection.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_ON_Col);
+        //        Debug.Log("Survey Response Noted: " + m_chosenSurveyButton);
+        //    }
+        //}
+        //else {
+        //    //try to see if submit button
+        //    SubmitSurveyButton submitBut = _selection.GetComponent<SubmitSurveyButton>();
+        //    if (submitBut) {
+        //        if (_clicked) {
+        //            if ( m_chosenSurveyButton > -1 ) {
+        //                submitSurvey();
+        //                Debug.Log("Survey Submitted");
+        //            }   
+        //        }   
+        //    }
+        //}
     }
 
     public void removeSurveyHighlights()
     {
-        foreach (GameObject surveyBut in m_surveyButtons) {
-            surveyBut.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_OFF_Col);
-            if ( m_chosenSurveyButton > -1 ) {
-                if ( surveyBut.GetComponent<SurveyButton>().m_id == m_chosenSurveyButton ) {
-                    surveyBut.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_ON_Col);
-                }
-            }
-        }
+        //foreach (GameObject surveyBut in m_surveyButtons) {
+        //    surveyBut.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_OFF_Col);
+        //    if ( m_chosenSurveyButton > -1 ) {
+        //        if ( surveyBut.GetComponent<SurveyButton>().m_id == m_chosenSurveyButton ) {
+        //            surveyBut.GetComponent<Renderer>().material.SetColor("_Color", m_surveyButton_ON_Col);
+        //        }
+        //    }
+        //}
     }
 
     //want to save the mode view as opposed to lifecycle modes (that may have changed to something irrelevant before we log data)
     public void setMode_Future(viewMode _viewMode)
     {
-        m_futureViewMode = _viewMode;
+        //m_futureViewMode = _viewMode;
     }
 
     public void setMode( viewMode _viewMode )
     {
-        m_viewMode = _viewMode;
+        //m_viewMode = _viewMode;
 
-        if ( (_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) && (_viewMode != viewMode.VIEW_MODE_SURVEY)) {
-            m_viewModePrev = _viewMode;
-        }
+        //if ( (_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) && (_viewMode != viewMode.VIEW_MODE_SURVEY)) {
+        //    m_viewModePrev = _viewMode;
+        //}
 
-        switch ( (int)_viewMode )
-        {
-            case (int)viewMode.VIEW_MODE_AVATAR:
-                {
-                    m_otherUser_Avatar.SetActive(true);
-                    m_otherUser_BoundingBox.SetActive(false);
-                    m_Room.SetActive(true);
-                    m_Room_Interstitial.SetActive(false);
-                    //m_ViveCameraQuad.SetActive(false);
-                    m_survey.SetActive(false);
-                } break;
-            case (int)viewMode.VIEW_MODE_BOUNDINGBOX:
-                {
+        //switch ( (int)_viewMode )
+        //{
+        //    case (int)viewMode.VIEW_MODE_AVATAR:
+        //        {
+        //            m_otherUser_Avatar.SetActive(true);
+        //            m_otherUser_BoundingBox.SetActive(false);
+        //            m_Room.SetActive(true);
+        //            m_Room_Interstitial.SetActive(false);
+        //            //m_ViveCameraQuad.SetActive(false);
+        //            m_survey.SetActive(false);
+        //        } break;
+        //    case (int)viewMode.VIEW_MODE_BOUNDINGBOX:
+        //        {
 
 
-                    //!!
-                    m_otherUser_Avatar.SetActive(false);
-                    m_otherUser_BoundingBox.SetActive(true);
-                    m_Room.SetActive(true);
-                    m_Room_Interstitial.SetActive(false);
-                    //m_ViveCameraQuad.SetActive(false);
-                    m_survey.SetActive(false);
+        //            //!!
+        //            m_otherUser_Avatar.SetActive(false);
+        //            m_otherUser_BoundingBox.SetActive(true);
+        //            m_Room.SetActive(true);
+        //            m_Room_Interstitial.SetActive(false);
+        //            //m_ViveCameraQuad.SetActive(false);
+        //            m_survey.SetActive(false);
 
-                    LeanTween.alpha(m_otherUser_BoundingBox, 0.0f, 0.0f);
-                } break;
-            case (int)viewMode.VIEW_MODE_CAMERA:
-                {
-                    m_otherUser_Avatar.SetActive(false);
-                    m_otherUser_BoundingBox.SetActive(false);
-                    m_Room.SetActive(false);
-                    m_Room_Interstitial.SetActive(false);
-                    //m_ViveCameraQuad.SetActive(true);
-                    m_survey.SetActive(false);
-                } break;
-            case (int)viewMode.VIEW_MODE_INTERSTITIAL: {
-                    m_otherUser_Avatar.SetActive(false);
-                    m_otherUser_BoundingBox.SetActive(false);
-                    m_Room.SetActive(false);
-                    m_Room_Interstitial.SetActive(true);
-                    //m_ViveCameraQuad.SetActive(false);
-                    m_survey.SetActive(false);
-                }
-                break;
-            case (int)viewMode.VIEW_MODE_SURVEY: {
-                    m_otherUser_Avatar.SetActive(false);
-                    m_otherUser_BoundingBox.SetActive(false);
-                    m_Room.SetActive(false);
-                    m_Room_Interstitial.SetActive(true);
-                    //m_ViveCameraQuad.SetActive(false);
-                    m_survey.SetActive(true);
-                }
-                break;
-            default:
-                {
-                    Debug.Log("WARNING: No valid view mode selected ...");
-                } break;
+        //            LeanTween.alpha(m_otherUser_BoundingBox, 0.0f, 0.0f);
+        //        } break;
+        //    case (int)viewMode.VIEW_MODE_CAMERA:
+        //        {
+        //            m_otherUser_Avatar.SetActive(false);
+        //            m_otherUser_BoundingBox.SetActive(false);
+        //            m_Room.SetActive(false);
+        //            m_Room_Interstitial.SetActive(false);
+        //            //m_ViveCameraQuad.SetActive(true);
+        //            m_survey.SetActive(false);
+        //        } break;
+        //    case (int)viewMode.VIEW_MODE_INTERSTITIAL: {
+        //            m_otherUser_Avatar.SetActive(false);
+        //            m_otherUser_BoundingBox.SetActive(false);
+        //            m_Room.SetActive(false);
+        //            m_Room_Interstitial.SetActive(true);
+        //            //m_ViveCameraQuad.SetActive(false);
+        //            m_survey.SetActive(false);
+        //        }
+        //        break;
+        //    case (int)viewMode.VIEW_MODE_SURVEY: {
+        //            m_otherUser_Avatar.SetActive(false);
+        //            m_otherUser_BoundingBox.SetActive(false);
+        //            m_Room.SetActive(false);
+        //            m_Room_Interstitial.SetActive(true);
+        //            //m_ViveCameraQuad.SetActive(false);
+        //            m_survey.SetActive(true);
+        //        }
+        //        break;
+        //    default:
+        //        {
+        //            Debug.Log("WARNING: No valid view mode selected ...");
+        //        } break;
 
-        }
+        //}
     }
 }

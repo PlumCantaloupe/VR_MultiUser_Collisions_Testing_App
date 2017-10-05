@@ -3,6 +3,8 @@
 public class Avatar : MonoBehaviour {
 
 	string id = "";
+    public GameObject boundingBox;
+    public GameObject avatarModel;
 
 	// Use this for initialization
 	void Start () {
@@ -17,18 +19,18 @@ public class Avatar : MonoBehaviour {
 	Vector3 toUnityPos( Vector3 oldVec )
 	{
 		Vector3 vec = new Vector3();
-		vec.x = map( oldVec.x, 0.0f, 1.0f, -5.0f, 5.0f );
+		vec.x = map( oldVec.x, 0.0f, 1.0f, -3.0f, 3.0f );
 		vec.y = 0.0f;
-		vec.z = map( oldVec.z, 0.0f, 1.0f, -5.0f, 5.0f );
+		vec.z = map( oldVec.z, 0.0f, 1.0f, -3.0f, 3.0f );
 		return vec;
 	}
 
 	Vector3 toFrameworkPos( Vector3 oldVec )
 	{
 		Vector3 vec = new Vector3();
-		vec.x = map( oldVec.x, -5.0f, 5.0f, 0.0f, 1.0f );
+		vec.x = map( oldVec.x, -3.0f, 3.0f, 0.0f, 1.0f );
 		vec.y = 0.0f;
-		vec.z = map( oldVec.z, -5.0f, 5.0f, 0.0f, 1.0f );
+		vec.z = map( oldVec.z, -3.0f, 3.0f, 0.0f, 1.0f );
 		return vec;
 	}
 
@@ -39,7 +41,7 @@ public class Avatar : MonoBehaviour {
 
 	public UserObject getUserObject()
 	{
-		Color col 	= GetComponent<Renderer>().material.color;
+		Color col 	= avatarModel.GetComponent<Renderer>().material.color;
 		Vector3 pos = toFrameworkPos( transform.position );
 
 		UserObject userObj = new UserObject();
@@ -57,8 +59,8 @@ public class Avatar : MonoBehaviour {
 	public void setUserObject( UserObject userObj )
 	{
 		id = userObj.id;
-		GetComponent<Renderer>().material.color	= new Color( userObj.r/255.0f, userObj.g/255.0f, userObj.b/255.0f );
-		GetComponent<Transform>().position 		= toUnityPos( new Vector3(userObj.x, userObj.y, userObj.z) );
+        avatarModel.GetComponent<Renderer>().material.color	= new Color( userObj.r/255.0f, userObj.g/255.0f, userObj.b/255.0f );
+		GetComponent<Transform>().position 		            = toUnityPos( new Vector3(userObj.x, userObj.y, userObj.z) );
 	}
 
 	float map(float x, float in_min, float in_max, float out_min, float out_max)

@@ -36,6 +36,7 @@ public class MUFramework : MonoBehaviour
 
 			//get all users noted in data sent from server
 			UserObject[] userObjs = JSONHelper.FromJsonArray<UserObject>(e.data);
+            //Debug.Log("userObjs.Length: " + userObjs.Length);
             for (int i = 0; i < userObjs.Length; i++) {
                 usersArr.Add( (UserObject)userObjs[i]);
             }
@@ -67,6 +68,7 @@ public class MUFramework : MonoBehaviour
                 }
 
                 if (!idFound) {
+                    Debug.Log("Deleting Player Object");
                     Destroy( gameObj );
                     //break;
                 }
@@ -75,7 +77,7 @@ public class MUFramework : MonoBehaviour
 		}
 		else if (userElemArr.Length < usersArr.Count) {
 			//!!someone has connected
-            Debug.Log("someone connected");
+            Debug.Log("someone connected: " + userElemArr.Length + " " + usersArr.Count);
             foreach ( UserObject userObj in usersArr ) {
                 bool hasBeenInitiatialized = false;
 
@@ -89,14 +91,23 @@ public class MUFramework : MonoBehaviour
 
                 if ( !hasBeenInitiatialized ) {
                     GameObject gameObj = (GameObject)Instantiate(Resources.Load("prefabs/Avatar"));
-                    gameObj.GetComponent<Avatar>().setUserObject( userObj );
+                    
+                    //find children
+                    GameObject avatar_model = gameObj.transform.Find("Avatar_Model").gameObject;
+                    GameObject boundingBox  = gameObj.transform.Find("BoundingBox").gameObject;
+
+                    //initialize
+                    gameObj.GetComponent<Avatar>().avatarModel = avatar_model;  //set first!
+                    gameObj.GetComponent<Avatar>().boundingBox = boundingBox;   //set first!
+
+                    gameObj.GetComponent<Avatar>().setUserObject(userObj);      //now set this
                     //break;
                 }
             }
 		}
 		else {
 			//update all positions
-            Debug.Log("update positions");
+            //Debug.Log("update positions");
 			foreach (GameObject gameObj in userElemArr) {
 				foreach (UserObject userObj in usersArr ) {
                     if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
