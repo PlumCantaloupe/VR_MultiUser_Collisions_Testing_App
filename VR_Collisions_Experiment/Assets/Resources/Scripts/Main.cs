@@ -100,9 +100,6 @@ public class Main : MonoBehaviour
     public float m_endMoveTime          = 0.0f;
     public float m_prevTime             = 0.0f;
 
-    public SocketIOController io;
-    string m_userID = "";
-
     bool m_prev_withinBB_AOE        = false;
     bool m_prev_Colliding           = false;
 
@@ -129,36 +126,6 @@ public class Main : MonoBehaviour
     // init
     void Start()
     {
-        io.On("connect", (SocketIOEvent e) => {
-            io.Emit("newUser");
-        });
-
-        io.On("usersData", (SocketIOEvent e) => {
-            //this data will be in array form ...
-            UserObject[] userObjs = JSONHelper.FromJson<UserObject>(e.data);
-            for (int i = 0; i < userObjs.Length; i++)
-            {
-                UserObject user = userObjs[i];
-                //Debug.Log(userObjs[i].socketID);
-                if (!m_userID.Equals(user.socketID))
-                {
-                    m_otherUser.transform.position = new Vector3( user.x, m_otherUser.transform.position.y, user.z );
-                }
-            }
-
-            Debug.Log("usersData: " + e.data);
-        });
-
-        //when we receive a unique ID. We will use this to send data to the server (and identify ourselves)
-        io.On("givenID", (SocketIOEvent e) => {
-            UserObject uObj = JsonUtility.FromJson<UserObject>(e.data);
-            m_userID = uObj.socketID;
-            //Debug.Log( "id received: " + userID );
-            Debug.Log("givenID: " + m_userID);
-        });
-
-        io.Connect();
-
         //avatar default
         setMode(viewMode.VIEW_MODE_INTERSTITIAL);
         setMode_Future(viewMode.VIEW_MODE_AVATAR);
@@ -169,33 +136,6 @@ public class Main : MonoBehaviour
         //check where HMD is (don't care about y-value)
         Vector3 hmdPos = HELLO_TEST;//m_HMDCam.GetComponent<Transform>().position;
         hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
-
-        UserObject userObj = new UserObject();
-        userObj.socketID = m_userID;
-        userObj.x = (int)hmdPos.x;
-        userObj.y = (int)hmdPos.y;
-        userObj.z = (int)hmdPos.z;
-        io.Emit("positionUpdate", JsonUtility.ToJson(userObj));
-
-        float currTime = Time.time;
-        if (currTime - m_prevTime > DATA_TIME_INTERVAL_S) {
-
-            GetComponent<Networking>().sendHMDPos_Send(hmdPos.x, hmdPos.z);     //send message to controller app
-            m_prevTime = currTime;                                              //set prev time to curr to reset interval check
-
-            if (m_trialInSession) {
-                m_trackedTime.Add(currTime);
-                m_trackedPos_X.Add(hmdPos.x);
-                m_trackedPos_Z.Add(hmdPos.z);
-
-                if (m_viveController) {
-                    SteamVR_TrackedController viveCont = m_viveController.GetComponent<SteamVR_TrackedController>();
-                    var device = SteamVR_Controller.Input((int)viveCont.controllerIndex);
-                    Vector2 triggerVal = device.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger);
-                    m_trackedAnxiety.Add(triggerVal.x); //x and y are the same
-                }
-            }
-        }
 
         checkforPillarCollision(hmdPos);
         adjustBoundingBoxTransparency(hmdPos);
@@ -273,7 +213,7 @@ public class Main : MonoBehaviour
             }
         }
 
-        GetComponent<Networking>().endTrialMessage_Send();
+        //GetComponent<Networking>().endTrialMessage_Send();
         setMode( viewMode.VIEW_MODE_INTERSTITIAL);
     }
 
@@ -420,7 +360,7 @@ public class Main : MonoBehaviour
     {
         stopTrial();
 
-        GetComponent<Networking>().surveyMessage_Send(m_chosenSurveyButton);
+        //GetComponent<Networking>().surveyMessage_Send(m_chosenSurveyButton);
         resetSurvey();
         setMode(viewMode.VIEW_MODE_INTERSTITIAL);
     }
