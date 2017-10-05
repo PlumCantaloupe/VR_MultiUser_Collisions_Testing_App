@@ -22,6 +22,8 @@ public class SimpleVivePointer : MonoBehaviour
 
         Material newMat = Resources.Load("Materials/ControllerPointer_Mat") as Material;
         pointer.GetComponent<MeshRenderer>().material = newMat;
+        pointer.GetComponent<MeshRenderer>().receiveShadows = false;
+        pointer.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
         LeanTween.alpha(pointer, 0.2f, 0.0f);
     }
