@@ -3,12 +3,25 @@ using System.Collections.Generic;
 using UnitySocketIO;
 using UnitySocketIO.Events;
 
-public class MUFramework : MonoBehaviour 
+[System.Serializable]
+public struct playAreaSize
 {
-	public SocketIOController io;
-	List<UserObject> usersArr = new List<UserObject>();
+    public float halfWidth_x;
+    public float halfWidth_z;
+};
 
-	void Awake()
+public class MUFramework : MonoBehaviour
+{
+    public SocketIOController io;
+    public GameObject head;
+    public GameObject rightHand;
+    public GameObject leftHand;
+    public List<UserObject> usersArr = new List<UserObject>();
+    public UserObject thisUserObj = null;
+    public playAreaSize playAreaSize = new playAreaSize();
+
+
+    void Awake()
 	{
 		Application.runInBackground = true;
 	}
@@ -16,7 +29,14 @@ public class MUFramework : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-        string userID = "";
+        //find and set vrPlayArea
+        Valve.VR.HmdQuad_t rect = new Valve.VR.HmdQuad_t();
+        SteamVR_PlayArea.GetBounds(SteamVR_PlayArea.Size.Calibrated, ref rect);
+        playAreaSize.halfWidth_x = Mathf.Abs(rect.vCorners2.v0 - rect.vCorners0.v0)/2.0f;
+        playAreaSize.halfWidth_z = Mathf.Abs(rect.vCorners2.v2 - rect.vCorners0.v2)/2.0f;
+
+        //now setupo network events
+        string thisUserID = "";
 
 		io.On("connect", (SocketIOEvent e) => {
         	Debug.Log("SocketIO connected");
@@ -25,20 +45,24 @@ public class MUFramework : MonoBehaviour
 
 		io.On("user_connect", (SocketIOEvent e) => {
 			UserObject userObj = JSONHelper.FromJsonObject<UserObject>(e.data);
-			if ( userID.Equals("") ) {
-				userID = userObj.id;
-				Debug.Log( "id received: " + userID );
+			if (thisUserID.Equals("") ) {
+                thisUserID = userObj.id;
+				Debug.Log( "id received: " + thisUserID);
 			}
 		});
 
 		io.On("usersData", (SocketIOEvent e) => {
-			usersArr.Clear(); //reset
+            thisUserObj = null;
+            usersArr.Clear(); //reset
 
-			//get all users noted in data sent from server
-			UserObject[] userObjs = JSONHelper.FromJsonArray<UserObject>(e.data);
+            //get all users noted in data sent from server
+            UserObject[] userObjs = JSONHelper.FromJsonArray<UserObject>(e.data);
             //Debug.Log("userObjs.Length: " + userObjs.Length);
             for (int i = 0; i < userObjs.Length; i++) {
                 usersArr.Add( (UserObject)userObjs[i]);
+                if ( userObjs[i].id == thisUserID ) {
+                    thisUserObj = usersArr[usersArr.Count - 1];
+                }
             }
 		});
 		
@@ -48,9 +72,19 @@ public class MUFramework : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
     {
-		GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
+        //
+        //send this updated userdata acording to avatar positioning via VR
+        //
+        Vector3 frameworkPos = toFrameworkPos(new Vector3(head.transform.position.x, 0.0f, head.transform.position.z));
+        thisUserObj.x = frameworkPos.x;
+        thisUserObj.y = frameworkPos.y;
+        thisUserObj.z = frameworkPos.z;
+        io.Emit("posUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
 
-		// Update the state of the world for the elapsed time since last render
+        //
+        //now update all avatars positions
+        //
+        GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
         if (userElemArr.Length > usersArr.Count) {
             Debug.Log("someone disconnected");
             //!!someone has disconnected
@@ -111,10 +145,37 @@ public class MUFramework : MonoBehaviour
 			foreach (GameObject gameObj in userElemArr) {
 				foreach (UserObject userObj in usersArr ) {
                     if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
-                        gameObj.GetComponent<Avatar>().setUserObject( userObj );
+                        gameObj.GetComponent<Avatar>().setUserObject(userObj);
                     }
 				}
 			}
 		}
 	}
+
+    static public float map(float value, float in_min, float in_max, float out_min, float out_max, bool doClamp)
+    {
+        float val = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+        if (doClamp) {
+            val = Mathf.Min( Mathf.Max(val, out_min), out_max);
+        }
+        return val;
+    }
+
+    static public Vector3 toUnityPos(Vector3 oldVec)
+    {
+        Vector3 vec = new Vector3();
+        vec.x = map(oldVec.x, 0.0f, 1.0f, -5.0f, 5.0f, true);
+        vec.y = 0.0f;
+        vec.z = map(oldVec.z, 0.0f, 1.0f, -5.0f, 5.0f, true);
+        return vec;
+    }
+
+    static public Vector3 toFrameworkPos(Vector3 oldVec)
+    {
+        Vector3 vec = new Vector3();
+        vec.x = map(oldVec.x, -5.0f, 5.0f, 0.0f, 1.0f, true);
+        vec.y = 0.0f;
+        vec.z = map(oldVec.z, -5.0f, 5.0f, 0.0f, 1.0f, true);
+        return vec;
+    }
 }
