@@ -75,7 +75,7 @@ public class MUFramework : MonoBehaviour
         //
         //send this updated userdata acording to avatar positioning via VR
         //
-        Vector3 frameworkPos = toFrameworkPos(new Vector3(head.transform.position.x, 0.0f, head.transform.position.z));
+        Vector3 frameworkPos = toFrameworkPos(new Vector3(head.transform.position.x, head.transform.position.y, head.transform.position.z));
         thisUserObj.x = frameworkPos.x;
         thisUserObj.y = frameworkPos.y;
         thisUserObj.z = frameworkPos.z;
@@ -127,7 +127,7 @@ public class MUFramework : MonoBehaviour
                     GameObject gameObj = (GameObject)Instantiate(Resources.Load("prefabs/Avatar"));
                     
                     //find children
-                    GameObject avatar_model = gameObj.transform.Find("Avatar_Model").gameObject;
+                    GameObject avatar_model = gameObj.transform.Find("Avatar_Body").gameObject;
                     GameObject boundingBox  = gameObj.transform.Find("BoundingBox").gameObject;
 
                     //initialize
@@ -165,7 +165,7 @@ public class MUFramework : MonoBehaviour
     {
         Vector3 vec = new Vector3();
         vec.x = map(oldVec.x, 0.0f, 1.0f, -5.0f, 5.0f, true);
-        vec.y = 0.0f;
+        vec.y = map(oldVec.y, 0.0f, 1.0f, 0.0f, 5.0f, true);
         vec.z = map(oldVec.z, 0.0f, 1.0f, -5.0f, 5.0f, true);
         return vec;
     }
@@ -174,7 +174,7 @@ public class MUFramework : MonoBehaviour
     {
         Vector3 vec = new Vector3();
         vec.x = map(oldVec.x, -5.0f, 5.0f, 0.0f, 1.0f, true);
-        vec.y = 0.0f;
+        vec.y = map(oldVec.y, 0.0f, 5.0f, 0.0f, 1.0f, true);
         vec.z = map(oldVec.z, -5.0f, 5.0f, 0.0f, 1.0f, true);
         return vec;
     }
