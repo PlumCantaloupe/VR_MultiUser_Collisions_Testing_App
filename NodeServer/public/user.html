@@ -39,17 +39,62 @@
             let usersArr = new Array();
 
             // !!want to load in JSOn object representing data we constantly send
-            function getUserObj(id, x, y, z, r, g, b, data)
-            {
+            //function getUserObj(id, x, y, z, r, g, b, data)
+            //{
+            //    let userObj = {};
+            //    userObj.id = id;
+            //    userObj.x = x;
+            //    userObj.y = y;
+            //    userObj.z = z;
+            //    userObj.r = r;
+            //    userObj.g = g;
+            //    userObj.b = b;
+            //    userObj.data = data;
+            //    return userObj;
+            //}
+
+            //just some consts for typed array access
+            const R = 0;
+            const G = 1;
+            const B = 2;
+
+            const X = 0;
+            const Y = 1;
+            const Z = 2;
+            const W = 3;
+
+            function getUserObj(id,
+
+                        r, g, b,
+
+                        root_pos_x, root_pos_y, root_pos_z,
+                        head_pos_x, head_pos_y, head_pos_z,
+                        hand_L_pos_x, hand_L_pos_y, hand_L_pos_z,
+                        hand_R_pos_x, hand_R_pos_y, hand_R_pos_z,
+
+                        root_rot_w, root_rot_x, root_rot_y, root_rot_z,
+                        head_rot_w, head_rot_x, head_rot_y, head_rot_z,
+                        hand_L_rot_w, hand_L_rot_x, hand_L_rot_y, hand_L_rot_z,
+                        hand_R_rot_w, hand_R_rot_x, hand_R_rot_y, hand_R_rot_z,
+
+                        message) {
                 let userObj = {};
+
                 userObj.id = id;
-                userObj.x = x;
-                userObj.y = y;
-                userObj.z = z;
-                userObj.r = r;
-                userObj.g = g;
-                userObj.b = b;
-                userObj.data = data;
+                userObj.color = [r, g, b];
+
+                userObj.pos_root = [root_pos_x, root_pos_y, root_pos_z];
+                userObj.pos_head = [head_pos_x, head_pos_y, head_pos_z];
+                userObj.pos_hand_L = [hand_L_pos_x, hand_L_pos_y, hand_L_pos_z];
+                userObj.pos_hand_R = [hand_R_pos_x, hand_R_pos_y, hand_R_pos_z];
+
+                userObj.rot_root = [root_rot_x, root_rot_y, root_rot_z, root_rot_w];
+                userObj.rot_head = [head_rot_x, head_rot_y, head_rot_z, head_rot_w];
+                userObj.rot_hand_L = [hand_L_rot_x, hand_L_rot_y, hand_L_rot_z, hand_L_rot_w];
+                userObj.rot_hand_R = [hand_R_rot_x, hand_R_rot_y, hand_R_rot_z, hand_L_rot_w];
+
+                userObj.message = message;
+
                 return userObj;
             }
 
@@ -77,15 +122,15 @@
             //var socket = io("/namespace_display");
             //socket.connect("http://localhost:8080");
 
-            socket.on("connect", (data) => {
+            socket.on("connect", (userData) => {
                 //userID = uuidv4();
                 //socket.emit("newUser", {'id':userID});
                 socket.emit("newUser");
             });
 
-            socket.on("user_connect", (data) => {
+            socket.on("user_connect", (userData) => {
                 if ( userID === "" ) {
-                    userID = data.id;
+                    userID = userData.id;
                     console.log( "id received: " + userID );
                 }
             });
@@ -97,7 +142,9 @@
             socket.on("usersData", (data) => {
                 //this data will be in array form ...
                 //console.log("user:message: " + JSON.stringify(data)); 
-                usersArr = data.items;
+                usersArr = [...data.items];
+
+                //console.log(usersArr[0]);
             });
 
             //doc ready, let's send our movement
@@ -107,6 +154,7 @@
                 $(document).mousemove( (event) => {  
                     if ( userID !== "" ) {
                         if (leftButtonDown) {
+
                             const elem          = $("#Display");
                             const position      = elem.position();
                             const elemLeft      = position.left;
@@ -118,9 +166,16 @@
                             const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
                             const mappedY       = map(1.0, 0.0, 5.0, 0.0, 1.0, true);
                             const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
-                            const dataObj = getUserObj(userID, mappedX, mappedY, mappedZ, 0, 0, 0, {}); //{ id:userID, num1:event.pageX, num2:event.pageY, num3:0, data:{}};
+                            const dataObj       = getUserObj(   userID,
+                                                                0, 0, 0,
+                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, 0.0, 0.0, 0.0,
+                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                                "");
                             
-                            socket.emit("posUpdate", dataObj);
+                            socket.emit("transformUpdate", dataObj);
+
+                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
+                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
                         }
                     }
 
@@ -184,7 +239,7 @@
                                     let newElem = document.createElement('div');
                                     $(newElem).attr("id", userObj.id);
                                     $(newElem).addClass("userElem");
-                                    $(newElem).css("background-color", "rgb(" + userObj.r + "," + userObj.g + "," + userObj.b + ")");
+                                    $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
                                     $(newElem).appendTo("#Display");
                                 }
                             }
@@ -201,8 +256,8 @@
                                         const scalar_y = $("#Display").height() - $(".userElem").first().height();
                                         const oldX = parseInt(elem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
                                         const oldY = parseInt(elem.css("top"), 10);
-                                        const newX = lerp(oldX, userObj.x * scalar_x, LERP_VAL);
-                                        const newY = lerp(oldY, userObj.z * scalar_y, LERP_VAL);
+                                        const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
+                                        const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
                                         elem.css("left", newX);
                                         elem.css("top", newY);
                                     }

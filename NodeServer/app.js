@@ -10,18 +10,48 @@ const io        = require('socket.io')(server);
 const LISTEN_PORT   = 8080;
 const MAX_USERS     = 8;
 
-//!!want to load in JSOn object representing data we constantly send
-function getUserObj(id, x, y, z, r, g, b, message)
-{
+//just some consts for typed array access
+const R = 0;
+const G = 1;
+const B = 2;
+
+const X = 0;
+const Y = 1;
+const Z = 2;
+const W = 3;
+
+function getUserObj(id,
+
+            r, g, b,
+
+            root_pos_x, root_pos_y, root_pos_z,
+            head_pos_x, head_pos_y, head_pos_z,
+            hand_L_pos_x, hand_L_pos_y, hand_L_pos_z,
+            hand_R_pos_x, hand_R_pos_y, hand_R_pos_z,
+
+            root_rot_w, root_rot_x, root_rot_y, root_rot_z,
+            head_rot_w, head_rot_x, head_rot_y, head_rot_z,
+            hand_L_rot_w, hand_L_rot_x, hand_L_rot_y, hand_L_rot_z,
+            hand_R_rot_w, hand_R_rot_x, hand_R_rot_y, hand_R_rot_z,
+
+            message) {
     let userObj = {};
+
     userObj.id = id;
-    userObj.x = x;
-    userObj.y = y;
-    userObj.z = z;
-    userObj.r = r;
-    userObj.g = g;
-    userObj.b = b;
+    userObj.color = [r, g, b];
+
+    userObj.pos_root = [root_pos_x, root_pos_y, root_pos_z];
+    userObj.pos_head = [head_pos_x, head_pos_y, head_pos_z];
+    userObj.pos_hand_L = [hand_L_pos_x, hand_L_pos_y, hand_L_pos_z];
+    userObj.pos_hand_R = [hand_R_pos_x, hand_R_pos_y, hand_R_pos_z];
+
+    userObj.rot_root = [root_rot_x, root_rot_y, root_rot_z, root_rot_w];
+    userObj.rot_head = [head_rot_x, head_rot_y, head_rot_z, head_rot_w];
+    userObj.rot_hand_L = [hand_L_rot_x, hand_L_rot_y, hand_L_rot_z, hand_L_rot_w];
+    userObj.rot_hand_R = [hand_R_rot_x, hand_R_rot_y, hand_R_rot_z, hand_L_rot_w];
+
     userObj.message = message;
+
     return userObj;
 }
 
@@ -54,56 +84,6 @@ app.get( '/controller', function( req, res ){
     res.sendFile( __dirname + '/public/controller.html' );
 });
 
-// app.get( '/*' , function( req, res, next ) {
-
-//             //This is the current file they have requested
-//         var file = req.params[0];
- 
-//             //For debugging, we can track what files are requested.
-//         if(verbose) console.log('\t :: Express :: file requested : ' + file);
-
-//             //Send the requesting client the file.
-//         res.sendfile( __dirname + '/' + file );
-
-//     });
-
-// // Loading the index file . html displayed to the client
-// const server = http.createServer(function(req, res) {
-//     var path = url.parse(req.url).pathname;
-
-//     fs.readFile(__dirname + path, function(error, data){
-//         if (error){
-//             res.writeHead(404);
-//             res.write("opps this doesn't exist - 404");
-//             res.end();
-//         }
-//         else{
-//             const fileExt = path.split('.').pop();
-
-//             //console.log("ext:" + fileExt );
-
-//             if ( fileExt === "html" ) {
-//                 res.writeHead(200, {"Content-Type": "text/html"});
-//             }
-//             else if ( fileExt == "css"  ) {
-//                 res.writeHead(200, {"Content-Type": "text/css"});
-//             }
-//             else if ( fileExt == "js"  ) {
-//                 res.writeHead(200, {"Content-Type": "application/javascript"});
-//             }
-//             else if ( fileExt == "json"  ) {
-//                 res.writeHead(200, {"Content-Type": "application/json"});
-//             }
-//             else {
-//                 res.writeHead(200, {"Content-Type": "text/html"});
-//             }
-
-//             res.write(data, "utf8");
-//             res.end();
-//         }
-//     });
-// });
-
 let setIntervalFunc     = null;
 const dataSend_Interval = 50; //ms
 let users               = new Array();
@@ -134,7 +114,11 @@ io.on('connection', (socket) => {
         }
         else {
             const userCol = selectNewColor();
-            let userObj = getUserObj(socket.id, 0.0, 0.0, 0.0, userCol.r, userCol.g, userCol.b, ""); //use socket is for UUID ....
+            let userObj = getUserObj(   socket.id,
+                                        userCol.r, userCol.g, userCol.b,
+                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                        ""); //use socket is for UUID ....
             io.emit("user_connect", userObj);
             users.push( userObj ); //add new empty user with correct ID. We will update position later
 
@@ -142,13 +126,14 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("newController", (data) => {
+    socket.on("newController", (userData) => {
         //console.log("message: " + data.message);
     });
 
-    socket.on("posUpdate", (data) => {
+    //socket.on("posUpdate", (userData) => {
+    socket.on("transformUpdate", (userData) => {
         //console.log("updating user position");
-        updateUserPosition(data.id, data.x, data.y, data.z);
+        updateUserTransformations(userData);
     });
 
     //infinite loop with a millisecond delay (but only want one loop running ...)
@@ -170,14 +155,20 @@ io.on('connection', (socket) => {
 });
 
 //custom functions
-function updateUserPosition( id, xPos, yPos, zPos )
+function updateUserTransformations( userData )
 {
     for ( let i = 0; i < users.length; i++ ) {
         let element = users[i];
-        if ( id === element.id ) {
-            element.x = xPos;
-            element.y = yPos;
-            element.z = zPos;
+        if (userData.id === element.id) {
+            element.pos_root    = [...userData.pos_root];
+            element.pos_head    = [...userData.pos_head];
+            element.pos_hand_L  = [...userData.pos_hand_L];
+            element.pos_hand_R  = [...userData.pos_hand_R];
+
+            element.rot_root    = [...userData.rot_root];
+            element.rot_head    = [...userData.rot_head];
+            element.rot_hand_L  = [...userData.rot_hand_L];
+            element.rot_hand_R  = [...userData.rot_hand_R];
             break;
         }
     }
@@ -192,9 +183,9 @@ function removeUser( id )
                 //make color available
                 for ( let j = colorPalette.length-1; j >= 0; j-- ) {
                     let color = colorPalette[j];
-                    if (    element.r === color.r &&
-                            element.g === color.g &&
-                            element.b === color.b ) {
+                    if (    element.color[R] === color.r &&
+                            element.color[G] === color.g &&
+                            element.color[B] === color.b ) {
                         color.beingUsed = false;
                     }
                 }
