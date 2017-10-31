@@ -16,9 +16,9 @@ public class MUFramework : MonoBehaviour
     public GameObject head;
     public GameObject rightHand;
     public GameObject leftHand;
-    public List<UserObject> usersArr = new List<UserObject>();
-    public UserObject thisUserObj = null;
-    public playAreaSize playAreaSize = new playAreaSize();
+    public List<UserObject> usersArr    = new List<UserObject>();
+    public UserObject thisUserObj       = null;
+    public playAreaSize playAreaSize    = new playAreaSize();
 
 
     void Awake()
@@ -76,9 +76,12 @@ public class MUFramework : MonoBehaviour
         //send this updated userdata acording to avatar positioning via VR
         //
         Vector3 frameworkPos = toFrameworkPos(new Vector3(head.transform.position.x, head.transform.position.y, head.transform.position.z));
-        thisUserObj.x = frameworkPos.x;
-        thisUserObj.y = frameworkPos.y;
-        thisUserObj.z = frameworkPos.z;
+        //thisUserObj.x = frameworkPos.x;
+        //thisUserObj.y = frameworkPos.y;
+        //thisUserObj.z = frameworkPos.z;
+        thisUserObj.pos_head[0] = frameworkPos.x;
+        thisUserObj.pos_head[1] = frameworkPos.y;
+        thisUserObj.pos_head[2] = frameworkPos.z;
         io.Emit("posUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
 
         //
