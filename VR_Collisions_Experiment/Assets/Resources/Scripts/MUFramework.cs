@@ -10,6 +10,18 @@ public struct playAreaSize
     public float halfWidth_z;
 };
 
+public struct INDEX
+{
+    public const int X = 0;
+    public const int Y = 1;
+    public const int Z = 2;
+    public const int W = 3;
+
+    public const int R = 0;
+    public const int G = 1;
+    public const int B = 2;
+};
+
 public class MUFramework : MonoBehaviour
 {
     public SocketIOController io;
@@ -19,7 +31,6 @@ public class MUFramework : MonoBehaviour
     public List<UserObject> usersArr    = new List<UserObject>();
     public UserObject thisUserObj       = null;
     public playAreaSize playAreaSize    = new playAreaSize();
-
 
     void Awake()
 	{
@@ -52,6 +63,8 @@ public class MUFramework : MonoBehaviour
 		});
 
 		io.On("usersData", (SocketIOEvent e) => {
+            //Debug.Log("HHHHHHHHHHHHHHHHHHHH");
+
             thisUserObj = null;
             usersArr.Clear(); //reset
 
@@ -62,6 +75,7 @@ public class MUFramework : MonoBehaviour
                 usersArr.Add( (UserObject)userObjs[i]);
                 if ( userObjs[i].id == thisUserID ) {
                     thisUserObj = usersArr[usersArr.Count - 1];
+                    //Debug.Log("found user!");
                 }
             }
 		});
@@ -75,14 +89,38 @@ public class MUFramework : MonoBehaviour
         //
         //send this updated userdata acording to avatar positioning via VR
         //
-        Vector3 frameworkPos = toFrameworkPos(new Vector3(head.transform.position.x, head.transform.position.y, head.transform.position.z));
-        //thisUserObj.x = frameworkPos.x;
-        //thisUserObj.y = frameworkPos.y;
-        //thisUserObj.z = frameworkPos.z;
-        thisUserObj.pos_head[0] = frameworkPos.x;
-        thisUserObj.pos_head[1] = frameworkPos.y;
-        thisUserObj.pos_head[2] = frameworkPos.z;
-        io.Emit("posUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
+        if ( thisUserObj != null )
+        {
+            Vector3 headPos = toFrameworkPos(new Vector3(head.transform.position.x, head.transform.position.y, head.transform.position.z));
+            thisUserObj.pos_head[INDEX.X] = headPos.x;
+            thisUserObj.pos_head[INDEX.Y] = headPos.y;
+            thisUserObj.pos_head[INDEX.Z] = headPos.z;
+            Vector3 handPos_L = toFrameworkPos(new Vector3(leftHand.transform.position.x, leftHand.transform.position.y, leftHand.transform.position.z));
+            thisUserObj.pos_hand_L[INDEX.X] = handPos_L.x;
+            thisUserObj.pos_hand_L[INDEX.Y] = handPos_L.y;
+            thisUserObj.pos_hand_L[INDEX.Z] = handPos_L.z;
+            Vector3 handPos_R = toFrameworkPos(new Vector3(rightHand.transform.position.x, rightHand.transform.position.y, rightHand.transform.position.z));
+            thisUserObj.pos_hand_R[INDEX.X] = handPos_R.x;
+            thisUserObj.pos_hand_R[INDEX.Y] = handPos_R.y;
+            thisUserObj.pos_hand_R[INDEX.Z] = handPos_R.z;
+
+            thisUserObj.rot_head[INDEX.W] = head.transform.rotation.w;
+            thisUserObj.rot_head[INDEX.X] = head.transform.rotation.x;
+            thisUserObj.rot_head[INDEX.Y] = head.transform.rotation.y;
+            thisUserObj.rot_head[INDEX.Z] = head.transform.rotation.z;
+
+            thisUserObj.rot_hand_L[INDEX.W] = leftHand.transform.rotation.w;
+            thisUserObj.rot_hand_L[INDEX.X] = leftHand.transform.rotation.x;
+            thisUserObj.rot_hand_L[INDEX.Y] = leftHand.transform.rotation.y;
+            thisUserObj.rot_hand_L[INDEX.Z] = leftHand.transform.rotation.z;
+
+            thisUserObj.rot_hand_R[INDEX.W] = rightHand.transform.rotation.w;
+            thisUserObj.rot_hand_R[INDEX.X] = rightHand.transform.rotation.x;
+            thisUserObj.rot_hand_R[INDEX.Y] = rightHand.transform.rotation.y;
+            thisUserObj.rot_hand_R[INDEX.Z] = rightHand.transform.rotation.z;
+
+            io.Emit("transformUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
+        }
 
         //
         //now update all avatars positions
@@ -130,12 +168,16 @@ public class MUFramework : MonoBehaviour
                     GameObject gameObj = (GameObject)Instantiate(Resources.Load("prefabs/Avatar"));
                     
                     //find children
-                    GameObject avatar_model = gameObj.transform.Find("Avatar_Body").gameObject;
+                    GameObject model_body   = gameObj.transform.Find("Avatar_Body").gameObject;
+                    GameObject model_hand_L = gameObj.transform.Find("Avatar_Hand_L").gameObject;
+                    GameObject model_hand_R = gameObj.transform.Find("Avatar_Hand_R").gameObject;
                     GameObject boundingBox  = gameObj.transform.Find("BoundingBox").gameObject;
 
                     //initialize
-                    gameObj.GetComponent<Avatar>().avatarModel = avatar_model;  //set first!
-                    gameObj.GetComponent<Avatar>().boundingBox = boundingBox;   //set first!
+                    gameObj.GetComponent<Avatar>().model_body   = model_body;  //set first!
+                    gameObj.GetComponent<Avatar>().model_hand_L = model_hand_L;  //set first!
+                    gameObj.GetComponent<Avatar>().model_Hand_R = model_hand_R;  //set first!
+                    gameObj.GetComponent<Avatar>().boundingBox  = boundingBox;   //set first!
 
                     gameObj.GetComponent<Avatar>().setUserObject(userObj);      //now set this
                     //break;
