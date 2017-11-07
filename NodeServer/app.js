@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         ""); //use socket is for UUID ....
-            io.emit("user_connect", userObj);
+            socket.emit("user_connect", userObj);
             users.push( userObj ); //add new empty user with correct ID. We will update position later
 
             console.log( "newUser received " + socket.id );
