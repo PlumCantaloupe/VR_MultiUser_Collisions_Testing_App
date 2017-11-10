@@ -1,42 +1,281 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>controller test</title>
+        <title>user Test</title>
+        <link rel="stylesheet" type="text/css" href="css/reset.css">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
     </head>
 
-    <button id="leftButton">LEFT</button>
-    <button id="rightButton">RIGHT</button>
-    <!-- <button id="imageButton">IMAGE</button> -->
-
     <body>
-        <h1>Controller Test</h1>
+        <div id="Experiment_Section" class="section">
+            <button id="Exp_New_B" class="threeAcross">New Experiment</button>
+            <button id="Exp_End_B" class="threeAcross">End Experiment</button>
+            <button id="Debug_B" class="threeAcross">Debug Toggle</button>
+        </div>
+        <div id="Live_Section">
+            <div id="DisplayWrapper">
+                <div id="Display">
+                    <!-- <div style="width:30px; height:30px; top:0px; left:30px; background-color:#aaa; position:absolute;" ></div> -->
+                    <!-- <div style="width:30px; height:30px; top:40px; left:100px; background-color:#000; position:absolute;" ></div> -->
+                </div>
+            </div>
+        </div>
+        <div id="Mode_Section" class="section">
+            <button id="Mode_Avatar_B" class="threeAcross">Avatar</button>
+            <button id="Mode_BB_B" class="threeAcross">Bounding Box</button>
+            <button id="Mode_Hybrid_B" class="threeAcross">Hybrid</button>
+        </div>
+        <div id="Trial_Section" class="section">
+            <button id="Trial_New_B" class="oneAcross">New Trial</button>
+        </section>
 
         <script src="/socket.io/socket.io.js"></script>
         <script>
+            const LERP_VAL = 0.5;
+            let userID = "";
+            let socket = io();
+            let usersArr = new Array();
 
-            var socket = io();
-            //var socket = io("/namespace_controller");
+            // !!want to load in JSOn object representing data we constantly send
+            //function getUserObj(id, x, y, z, r, g, b, data)
+            //{
+            //    let userObj = {};
+            //    userObj.id = id;
+            //    userObj.x = x;
+            //    userObj.y = y;
+            //    userObj.z = z;
+            //    userObj.r = r;
+            //    userObj.g = g;
+            //    userObj.b = b;
+            //    userObj.data = data;
+            //    return userObj;
+            //}
+
+            //just some consts for typed array access
+            const R = 0;
+            const G = 1;
+            const B = 2;
+
+            const X = 0;
+            const Y = 1;
+            const Z = 2;
+            const W = 3;
+
+            function getUserObj(id,
+
+                        r, g, b,
+
+                        root_pos_x, root_pos_y, root_pos_z,
+                        head_pos_x, head_pos_y, head_pos_z,
+                        hand_L_pos_x, hand_L_pos_y, hand_L_pos_z,
+                        hand_R_pos_x, hand_R_pos_y, hand_R_pos_z,
+
+                        root_rot_w, root_rot_x, root_rot_y, root_rot_z,
+                        head_rot_w, head_rot_x, head_rot_y, head_rot_z,
+                        hand_L_rot_w, hand_L_rot_x, hand_L_rot_y, hand_L_rot_z,
+                        hand_R_rot_w, hand_R_rot_x, hand_R_rot_y, hand_R_rot_z,
+
+                        message) {
+                let userObj = {};
+
+                userObj.id = id;
+                userObj.color = [r, g, b];
+
+                userObj.pos_root = [root_pos_x, root_pos_y, root_pos_z];
+                userObj.pos_head = [head_pos_x, head_pos_y, head_pos_z];
+                userObj.pos_hand_L = [hand_L_pos_x, hand_L_pos_y, hand_L_pos_z];
+                userObj.pos_hand_R = [hand_R_pos_x, hand_R_pos_y, hand_R_pos_z];
+
+                userObj.rot_root = [root_rot_x, root_rot_y, root_rot_z, root_rot_w];
+                userObj.rot_head = [head_rot_x, head_rot_y, head_rot_z, head_rot_w];
+                userObj.rot_hand_L = [hand_L_rot_x, hand_L_rot_y, hand_L_rot_z, hand_L_rot_w];
+                userObj.rot_hand_R = [hand_R_rot_x, hand_R_rot_y, hand_R_rot_z, hand_L_rot_w];
+
+                userObj.message = message;
+
+                return userObj;
+            }
+
+            function map(value, in_min, in_max, out_min, out_max, doClamp)
+            {
+                let val = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+                if (doClamp) {
+                    val = Math.min( Math.max(val, out_min), out_max );
+                }
+                return val;
+            }
+
+            function lerp(start, end, percent)
+            {
+                return (start + percent * (end - start));
+            }
+
+            //https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+            function uuidv4() {
+                return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
+            }
+
+            //var socket = io("/namespace_display");
             //socket.connect("http://localhost:8080");
+
+            socket.on("connect", (userData) => {
+                //userID = uuidv4();
+                //socket.emit("newUser", {'id':userID});
+                socket.emit("newUser");
+            });
+
+            socket.on("user_connect", (userData) => {
+                if ( userID === "" ) {
+                    userID = userData.id;
+                    console.log( "id received: " + userID );
+                }
+            });
+
+            // socket.on("user_disconnect", (data) => {
+            //     //!!TODO
+            // });
 
             socket.on("usersData", (data) => {
                 //this data will be in array form ...
-                console.log("controller:message: " + data.message);
+                //console.log("user:message: " + JSON.stringify(data)); 
+                usersArr = [...data.items];
+
+                //console.log(usersArr[0]);
             });
 
-            socket.on("connect", function(data) {
-                socket.emit( "newController", { message: "controller connected" } );
-            });
-
+            //doc ready, let's send our movement
             $(document).ready(function () {
-                // $('#leftButton').click( function() {
-                //   socket.emit( "left_from", "hello from Controller" );
-                // });
+                let leftButtonDown = false;
 
-                // $('#rightButton').click( function() {
-                //   socket.emit( "right_from", "hello from Controller" );
-                // });
+                $(document).mousemove( (event) => {  
+                    if ( userID !== "" ) {
+                        if (leftButtonDown) {
+
+                            const elem          = $("#Display");
+                            const position      = elem.position();
+                            const elemLeft      = position.left;
+                            const elemRight     = elemLeft + elem.width();
+                            const elemTop       = position.top;
+                            const elemBottom    = elemTop + elem.height();
+                            const userElem_HW   = $(".userElem").first().width() * 0.5;
+                            const userElem_HH   = $(".userElem").first().height() * 0.5;
+                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
+                            const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
+                            const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
+                            const dataObj       = getUserObj(   userID,
+                                                                0, 0, 0,
+                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
+                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                                "");
+                            
+                            socket.emit("transformUpdate", dataObj);
+
+                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
+                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
+                        }
+                    }
+
+                    $(document).mousedown( (event) => {  
+                        if(event.which === 1) { 
+                            leftButtonDown = true;
+                        }
+                    });
+
+                    $(document).mouseup( (event) => {  
+                        if(event.which === 1) { 
+                            leftButtonDown = false;
+                        }
+                    });
+
+                    //"game loop" update/draw code
+                    
+                    setInterval(update, 1000/60);
+
+                    function update() 
+                    {
+                        // Update the state of the world for the elapsed time since last render
+                        if ($(".userElem").length > usersArr.length) {
+                            //someone has disconnected
+                            let idFound     = false;
+
+                            //iterate backwards so we don't remove in the middle of an array
+                            let userElemArr = $(".userElem").toArray();
+                            for (let i = userElemArr.length; i >= 0; i--) {
+                                let elem = $(userElemArr[i]);
+                                for ( let i = 0; i < usersArr.length; i++ ) {
+
+                                    let userObj = usersArr[i];
+                                    if ( elem.attr("id") === userObj.id ) {
+                                        idFound     = true;
+                                    }
+
+                                    if (!idFound) {
+                                        //remove this element
+                                        elem.remove();
+                                    }
+                                }
+                            }
+                        }
+                        else if ($(".userElem").length < usersArr.length) {
+                            //someone has connected
+                            for ( let i = 0; i < usersArr.length; i++ ) {
+                                let userObj                 = usersArr[i];
+                                let hasBeenInitiatialized   = false;
+
+                                //first check if there is element exist, and update if so
+                                $(".userElem").each( (index, obj) => {
+                                    let elem = $(obj);
+                                    if ( elem.attr("id") === userObj.id ) {
+                                        hasBeenInitiatialized = true;
+                                    }
+                                });
+
+                                if ( !hasBeenInitiatialized ) {
+                                    //add new user
+                                    let newElem = document.createElement('div');
+                                    $(newElem).attr("id", userObj.id);
+                                    $(newElem).addClass("userElem");
+                                    $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
+                                    $(newElem).appendTo("#Display");
+                                }
+                            }
+                        }
+                        else {
+                            for ( let i = 0; i < usersArr.length; i++ ) {
+                                let userObj                 = usersArr[i];
+
+                                //first check if there is element exist, and update if so
+                                $(".userElem").each( (index, obj) => {
+                                    let elem = $(obj);
+                                    if ( elem.attr("id") === userObj.id ) {
+                                        const scalar_x = $("#Display").width() - $(".userElem").first().width();
+                                        const scalar_y = $("#Display").height() - $(".userElem").first().height();
+                                        const oldX = parseInt(elem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
+                                        const oldY = parseInt(elem.css("top"), 10);
+                                        const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
+                                        const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
+                                        elem.css("left", newX);
+                                        elem.css("top", newY);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    // function draw() {
+                    //     // Draw the state of the world
+                    // }
+
+                    //close event
+                    window.onbeforeunload = function () {
+                        //event called before page closes
+                        return "Do you really want to close?";
+                    };
+              });
             });
 
         </script>
