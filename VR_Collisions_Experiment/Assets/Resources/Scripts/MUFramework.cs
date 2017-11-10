@@ -32,6 +32,12 @@ public class MUFramework : MonoBehaviour
     public UserObject thisUserObj       = new UserObject();
     public playAreaSize playAreaSize    = new playAreaSize();
 
+    //lets keep refs to avatar pieces
+    Color avatar_origCol;
+    GameObject avatar_model = null;
+    GameObject avatar_hand_L = null;
+    GameObject avatar_hand_R = null;
+
     void Awake()
 	{
 		Application.runInBackground = true;
@@ -60,16 +66,14 @@ public class MUFramework : MonoBehaviour
             thisUserObj.color[INDEX.B] = userObj.color[INDEX.B];
 
             //avatar has already been connected for "this" user but want to change color appropriately
-            GameObject avatar_model     = head.transform.Find("Avatar_Body").gameObject;
-            GameObject avatar_hand_L    = leftHand.transform.Find("Avatar_Hand_L").gameObject;
-            GameObject avatar_hand_R    = rightHand.transform.Find("Avatar_Hand_R").gameObject;
+            avatar_model     = head.transform.Find("Avatar_Body").gameObject;
+            avatar_hand_L    = leftHand.transform.Find("Avatar_Hand_L").gameObject;
+            avatar_hand_R    = rightHand.transform.Find("Avatar_Hand_R").gameObject;
 
-            Color matCol = new Color(userObj.color[INDEX.R] / 255.0f, userObj.color[INDEX.G] / 255.0f, userObj.color[INDEX.B] / 255.0f);
-            avatar_model.GetComponent<Renderer>().material.color = matCol;
-            avatar_hand_L.GetComponent<Renderer>().material.color = matCol;
-            avatar_hand_R.GetComponent<Renderer>().material.color = matCol;
+            avatar_origCol = new Color(userObj.color[INDEX.R] / 255.0f, userObj.color[INDEX.G] / 255.0f, userObj.color[INDEX.B] / 255.0f);
+            setUserCol(avatar_origCol);
 
-            Debug.Log("id received: " + userObj.id + " color: " + matCol.ToString());
+            Debug.Log("id received: " + userObj.id + " color: " + avatar_origCol.ToString());
         });
 
 		io.On("usersData", (SocketIOEvent e) => {
@@ -201,6 +205,13 @@ public class MUFramework : MonoBehaviour
 			}
 		}
 	}
+
+    public void setUserCol(Color _matCol)
+    {
+        avatar_model.GetComponent<Renderer>().material.color = _matCol;
+        avatar_hand_L.GetComponent<Renderer>().material.color = _matCol;
+        avatar_hand_R.GetComponent<Renderer>().material.color = _matCol;
+    }
 
     static public float map(float value, float in_min, float in_max, float out_min, float out_max, bool doClamp)
     {

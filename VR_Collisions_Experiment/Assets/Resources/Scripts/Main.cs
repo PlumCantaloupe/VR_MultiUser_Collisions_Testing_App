@@ -303,6 +303,58 @@ public class Main : MonoBehaviour
 
     void checkForCollisions(Vector3 _hmdPos)
     {
+        if ((m_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) || (m_viewMode != viewMode.VIEW_MODE_SURVEY) || (m_userPosition != userPosition.otherPos_NONE)) {
+            //loop through all users
+            Vector3 otherUserPos = new Vector3(0.0f, 0.0f, 0.0f);
+            foreach (UserObject userObj in GetComponent<MUFramework>().usersArr) {
+                otherUserPos.x = userObj.pos_head[INDEX.X];
+                otherUserPos.y = userObj.pos_head[INDEX.Y];
+                otherUserPos.z = userObj.pos_head[INDEX.Z];
+                Vector3 diffVec = _hmdPos - otherUserPos;
+                if (diffVec.sqrMagnitude < COLLISION_OTHERUSER_EFFECT_RADIUS_SQR) {
+                    if (!m_prev_Colliding) {
+                        m_numCollisions++;
+                        m_prev_Colliding = true;
+
+                        GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
+                        foreach( GameObject otherUser in userElemArr ) {
+                            Avatar avatar = otherUser.GetComponent<Avatar>();
+                            if (avatar.getID() == userObj.id ) {
+                                Debug.Log("YESSSS");
+                                avatar.model_body.GetComponent<Renderer>().material.color =  m_Pillar_OffHighlight;
+                                avatar.model_hand_L.GetComponent<Renderer>().material.color =  m_Pillar_OffHighlight;
+                                avatar.model_Hand_R.GetComponent<Renderer>().material.color = m_Pillar_OffHighlight;
+                            }
+                            break;
+                        }
+
+                        //m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+                        //m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+                    }
+                }
+                else {
+                    if (m_prev_Colliding) {
+                        m_prev_Colliding = false;
+
+                        GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
+                        foreach (GameObject otherUser in userElemArr) {
+                            Avatar avatar = otherUser.GetComponent<Avatar>();
+                            if (avatar.getID() == userObj.id) {
+                                Color origCol = new Color(userObj.color[INDEX.R] / 255.0f, userObj.color[INDEX.G] / 255.0f, userObj.color[INDEX.B] / 255.0f);
+                                avatar.model_body.GetComponent<Renderer>().material.SetColor("_Color", origCol);
+                                avatar.model_hand_L.GetComponent<Renderer>().material.SetColor("_Color", origCol);
+                                avatar.model_Hand_R.GetComponent<Renderer>().material.SetColor("_Color", origCol);
+                            }
+                            break;
+                        }
+
+                        //m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
+                        //m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
+                    }
+                }
+            }
+        }
+
         //if ((m_viewMode != viewMode.VIEW_MODE_INTERSTITIAL) || (m_viewMode != viewMode.VIEW_MODE_SURVEY) || (m_userPosition != userPosition.otherPos_NONE)) {
         //    //m_prev_Colliding
         //    Vector3 diffVec = _hmdPos - m_otherUser.transform.position;
@@ -320,7 +372,7 @@ public class Main : MonoBehaviour
         //            m_prev_Colliding = false;
 
         //            m_otherUser_Avatar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
-        //            m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);  
+        //            m_otherUser_BoundingBox.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
         //        }
         //    }
         //}
