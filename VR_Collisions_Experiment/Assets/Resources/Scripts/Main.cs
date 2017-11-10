@@ -115,8 +115,6 @@ public class Main : MonoBehaviour
     List<float> m_trackedPos_Z      = new List<float>();
     string m_experimentID;
 
-    public Vector3 HELLO_TEST = new Vector3(0.0f, 0.0f, 0.0f);
-
     void awake()
 	{
         Application.runInBackground = true;
@@ -134,10 +132,10 @@ public class Main : MonoBehaviour
     void Update()
     {
         ////check where HMD is (don't care about y-value)
-        //Vector3 hmdPos = HELLO_TEST;//m_HMDCam.GetComponent<Transform>().position;
-        //hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
+        Vector3 hmdPos = m_HMDCam.GetComponent<Transform>().position;
+        hmdPos.y = 0.0f; //no need for y-axis as taller/shoter people may trigger differently
 
-        //checkforPillarCollision(hmdPos);
+        checkforPillarCollision(hmdPos);
         //adjustBoundingBoxTransparency(hmdPos);
         //checkForCollisions(hmdPos);
     }
@@ -228,31 +226,32 @@ public class Main : MonoBehaviour
 
     void checkforPillarCollision(Vector3 _hmdPos)
     {
-        //foreach ( GameObject pillar in m_pillars ) {
-        //    Vector3 pillarPos =pillar.GetComponent<Transform>().position;
-        //    pillarPos.y = 0.0f;
-        //    Vector3 diffVec = _hmdPos - pillarPos;
+        foreach (GameObject pillar in m_pillars) {
+            Vector3 pillarPos = pillar.GetComponent<Transform>().position;
+            pillarPos.y = 0.0f;
+            Vector3 diffVec = _hmdPos - pillarPos;
 
-        //    if (diffVec.sqrMagnitude < PILLARCOLLISION_EFFECT_RADIUS_SQR) {
-        //        //user is on top of pillar
-        //        if (pillar == m_selectedPillar && m_trialInSession) {
-        //            showSurvey();
-        //        } else {
-        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
-        //            m_collidedPillar = pillar;
-        //        }
+            if (diffVec.sqrMagnitude < PILLARCOLLISION_EFFECT_RADIUS_SQR) {
+                //user is on top of pillar
+                if (pillar == m_selectedPillar && m_trialInSession) {
+                    showSurvey();
+                }
+                else {
+                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_Collision_Highlight);
+                    m_collidedPillar = pillar;
+                }
 
-        //        break; //no need to check the rest as we can only be in one place at a time ;)
-        //    }
-        //    else {
-        //        if (pillar == m_selectedPillar) {
-        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OnHighlight);
-        //        }
-        //        else {
-        //            pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
-        //        }
-        //    }
-        //}
+                break; //no need to check the rest as we can only be in one place at a time ;)
+            }
+            else {
+                if (pillar == m_selectedPillar) {
+                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OnHighlight);
+                }
+                else {
+                    pillar.GetComponent<Renderer>().material.SetColor("_Color", m_Pillar_OffHighlight);
+                }
+            }
+        }
     }
 
     void adjustBoundingBoxTransparency(Vector3 _hmdPos)
