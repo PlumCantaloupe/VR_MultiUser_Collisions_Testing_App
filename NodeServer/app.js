@@ -137,7 +137,7 @@ io.on('connection', (socket) => {
     });
 
     //infinite loop with a millisecond delay (but only want one loop running ...)
-    if (setIntervalFunc != null) {
+    if (setIntervalFunc == null) {
         console.log("setting interval func");
         setIntervalFunc = setInterval( () => {
             //console.log("looping ....");
