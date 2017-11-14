@@ -156,7 +156,6 @@
                 //console.log("user:message: " + JSON.stringify(data)); 
                 usersArr = [...data.items];
 
-                //console.log(usersArr[0]);
             });
 
             //doc ready, let's send our movement
@@ -270,29 +269,14 @@
             });
 
             //functions for sending controller data
-            public void surveyMessage_Send(int _surveyAnswer)
+            function  surveyMessage_Send(surveyAnswer)
             {
             //client
-        IntegerMessage intMess = new IntegerMessage();
-            intMess.value = _surveyAnswer;
-            NetworkServer.SendToAll(MESSAGE_TYPE_SURVEY, intMess);
             }
 
-            public void endTrialMessage_Send()
+            function  endTrialMessage_Send()
             {
                 //client
-                IntegerMessage intMess = new IntegerMessage();
-                intMess.value = 0;
-                NetworkServer.SendToAll(MESSAGE_TYPE_END_TRIAL, intMess);
-            }
-
-            public void sendHMDPos_Send( float _posX, float _posZ )
-            {
-            //client
-        HMDPosMessage posMess = new HMDPosMessage();
-            posMess.hmdPosX = _posX;
-            posMess.hmdPosZ = _posZ;
-            NetworkServer.SendToAll(MESSAGE_TYPE_HMD_POS, posMess);
             }
 
             //receive message methods
@@ -301,43 +285,31 @@
               
             }
 
-            void hidePillarMessage_Send(pillarIndex)
+            function hidePillarMessage_Send(pillarIndex)
             {
                 
             }
 
-            void setViewModeMessage_Send(viewMode)
+            function setViewModeMessage_Send(viewMode)
             {
         
             }
 
-            void newExperimentMessage_Send()
+            function newExperimentMessage_Send()
             {
                 
             }
 
-            void endExperimentMessage_Receive()
+            function endExperimentMessage_Receive()
             {
-                
             }
 
-            void newTrialMessage_Send(NetworkMessage message)
+            function newTrialMessage_Send(message)
             {
-               
             }
 
-            void debugToggleMesssage_Receive(NetworkMessage message)
+            function debugToggleMesssage_Receive(message)
             {
-                int recMess = message.ReadMessage<IntegerMessage>().value;
-            Debug.Log("Debug Toggle Message Received: " + recMess);
-
-            Main _main = GetComponent<Main>();
-            if (recMess == 1) {
-                _main.m_debugElements.SetActive(true);
-            }
-            else if (recMess == 0) {
-                _main.m_debugElements.SetActive(false);
-            }
             }
 
         </script>
