@@ -129,6 +129,8 @@ public class MUFramework : MonoBehaviour
 
         io.Emit("transformUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
 
+        //!!TDOD: Just checking NumUsers can lead to bugs as things may change ...
+
         //
         //now update all "other" avatar positions
         //

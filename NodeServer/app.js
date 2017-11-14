@@ -104,8 +104,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log( socket.id + " disconnected" );
         removeUser(socket.id);
-
-        //need to send disconnect event here
     });
 
     socket.on("newUser", () => {
@@ -119,7 +117,8 @@ io.on('connection', (socket) => {
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         ""); //use socket is for UUID ....
-            socket.emit("user_connect", userObj);
+            socket.emit("user_setID", userObj);
+            io.sockets.emit("user_connect", userObj);
             users.push( userObj ); //add new empty user with correct ID. We will update position later
 
             console.log( "newUser received " + socket.id );
@@ -190,6 +189,13 @@ function removeUser( id )
                     }
                 }
                 users.splice(i, 1); //remove user from positions array
+                //need to send disconnect event here
+                let userObj = getUserObj( id,
+                                                0.0, 0.0, 0.0,
+                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                ""); //use socket is for UUID ....
+                io.sockets.emit("user_disconnect", userObj);
                 break;
             }
         }

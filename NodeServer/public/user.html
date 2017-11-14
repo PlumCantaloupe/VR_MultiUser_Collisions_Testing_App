@@ -23,6 +23,7 @@
             const LERP_VAL = 0.5;
             let userID = "";
             let socket = io();
+            let initialized = false;
             let usersArr = new Array();
 
             // !!want to load in JSOn object representing data we constantly send
@@ -131,8 +132,53 @@
                 //console.log("user:message: " + JSON.stringify(data)); 
                 usersArr = [...data.items];
 
+                if ( userID !== "" && initialized === false ) {
+                    for (let i = 0; i < usersArr.length; i++) {
+                        addUser(usersArr[i]);
+                    }
+                    initialized = true;
+                }
+
                 //console.log(usersArr[0]);
             });
+
+            socket.on("user_setID", (userData) => {
+                if ( userID === "" ) {
+                    userID = userData.id;
+                    console.log( "id received: " + userID );
+                }
+            });
+
+            socket.on("user_connect", (userData) => {
+                console.log("user_connect: " + userData.id);
+                addUser(userData);
+            });
+
+            socket.on("user_disconnect", (userData) => {
+                console.log("user_disconnect: " + userData.id);
+                removeUser(userData);
+            });
+
+            function removeUser(userObj) 
+            {
+                let userElemArr = $(".userElem").toArray();
+                for (let i = userElemArr.length; i >= 0; i--) {
+                    let elem = $(userElemArr[i]);
+                    if ( elem.attr("id") === userObj.id ) {
+                        elem.remove();
+                    }
+                    //break;
+                }
+            }
+
+            function addUser(userObj) 
+            {
+                let newElem = document.createElement('div');
+                $(newElem).attr("id", userObj.id);
+                $(newElem).addClass("userElem");
+                $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
+                $(newElem).appendTo("#Display");
+            }
 
             //doc ready, let's send our movement
             $(document).ready(function () {
@@ -184,54 +230,54 @@
 
                     function update() 
                     {
-                        // Update the state of the world for the elapsed time since last render
-                        if ($(".userElem").length > usersArr.length) {
-                            //someone has disconnected
-                            let idFound     = false;
+                        // // Update the state of the world for the elapsed time since last render
+                        // if ($(".userElem").length > usersArr.length) {
+                        //     //someone has disconnected
+                        //     let idFound     = false;
 
-                            //iterate backwards so we don't remove in the middle of an array
-                            let userElemArr = $(".userElem").toArray();
-                            for (let i = userElemArr.length; i >= 0; i--) {
-                                let elem = $(userElemArr[i]);
-                                for ( let i = 0; i < usersArr.length; i++ ) {
+                        //     //iterate backwards so we don't remove in the middle of an array
+                        //     let userElemArr = $(".userElem").toArray();
+                        //     for (let i = userElemArr.length; i >= 0; i--) {
+                        //         let elem = $(userElemArr[i]);
+                        //         for ( let i = 0; i < usersArr.length; i++ ) {
 
-                                    let userObj = usersArr[i];
-                                    if ( elem.attr("id") === userObj.id ) {
-                                        idFound     = true;
-                                    }
+                        //             let userObj = usersArr[i];
+                        //             if ( elem.attr("id") === userObj.id ) {
+                        //                 idFound     = true;
+                        //             }
 
-                                    if (!idFound) {
-                                        //remove this element
-                                        elem.remove();
-                                    }
-                                }
-                            }
-                        }
-                        else if ($(".userElem").length < usersArr.length) {
-                            //someone has connected
-                            for ( let i = 0; i < usersArr.length; i++ ) {
-                                let userObj                 = usersArr[i];
-                                let hasBeenInitiatialized   = false;
+                        //             if (!idFound) {
+                        //                 //remove this element
+                        //                 elem.remove();
+                        //             }
+                        //         }
+                        //     }
+                        // }
+                        // else if ($(".userElem").length < usersArr.length) {
+                        //     //someone has connected
+                        //     for ( let i = 0; i < usersArr.length; i++ ) {
+                        //         let userObj                 = usersArr[i];
+                        //         let hasBeenInitiatialized   = false;
 
-                                //first check if there is element exist, and update if so
-                                $(".userElem").each( (index, obj) => {
-                                    let elem = $(obj);
-                                    if ( elem.attr("id") === userObj.id ) {
-                                        hasBeenInitiatialized = true;
-                                    }
-                                });
+                        //         //first check if there is element exist, and update if so
+                        //         $(".userElem").each( (index, obj) => {
+                        //             let elem = $(obj);
+                        //             if ( elem.attr("id") === userObj.id ) {
+                        //                 hasBeenInitiatialized = true;
+                        //             }
+                        //         });
 
-                                if ( !hasBeenInitiatialized ) {
-                                    //add new user
-                                    let newElem = document.createElement('div');
-                                    $(newElem).attr("id", userObj.id);
-                                    $(newElem).addClass("userElem");
-                                    $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
-                                    $(newElem).appendTo("#Display");
-                                }
-                            }
-                        }
-                        else {
+                        //         if ( !hasBeenInitiatialized ) {
+                        //             //add new user
+                        //             let newElem = document.createElement('div');
+                        //             $(newElem).attr("id", userObj.id);
+                        //             $(newElem).addClass("userElem");
+                        //             $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
+                        //             $(newElem).appendTo("#Display");
+                        //         }
+                        //     }
+                        // }
+                        // else {
                             for ( let i = 0; i < usersArr.length; i++ ) {
                                 let userObj                 = usersArr[i];
 
@@ -250,7 +296,7 @@
                                     }
                                 });
                             }
-                        }
+                        // }
                     }
 
                     // function draw() {
