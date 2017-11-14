@@ -63,6 +63,20 @@
             const Z = 2;
             const W = 3;
 
+            //message types (no enum for uint_8t(short) values)
+            const MESSAGE_TYPE_SHOW_PILLAR    = 100;
+            const MESSAGE_TYPE_HIDE_PILLAR    = 101;
+            const MESSAGE_TYPE_SURVEY         = 102;
+            const NUM_MESSAGE_TYPES           = 103;
+            const MESSAGE_TYPE_MOVE_OTHERUSER = 104;
+            const MESSAGE_TYPE_SET_VIEWMODE   = 105;
+            const MESSAGE_TYPE_NEW_EXPERIMENT = 106;
+            const MESSAGE_TYPE_END_EXPERIMENT = 107;
+            const MESSAGE_TYPE_NEW_TRIAL      = 108;
+            const MESSAGE_TYPE_END_TRIAL      = 109;
+            const MESSAGE_TYPE_DEBUG_TOGGLE   = 110;
+            const MESSAGE_TYPE_HMD_POS        = 111;
+
             function getUserObj(id,
 
                         r, g, b,
@@ -122,18 +136,16 @@
             //var socket = io("/namespace_display");
             //socket.connect("http://localhost:8080");
 
-            socket.on("connect", (userData) => {
-                //userID = uuidv4();
-                //socket.emit("newUser", {'id':userID});
-                socket.emit("newUser");
-            });
+            //socket.on("connect", (userData) => {
+            //    socket.emit("newUser");
+            //});
 
-            socket.on("user_connect", (userData) => {
-                if ( userID === "" ) {
-                    userID = userData.id;
-                    console.log( "id received: " + userID );
-                }
-            });
+            //socket.on("user_connect", (userData) => {
+            //    if ( userID === "" ) {
+            //        userID = userData.id;
+            //        console.log( "id received: " + userID );
+            //    }
+            //});
 
             // socket.on("user_disconnect", (data) => {
             //     //!!TODO
@@ -154,28 +166,7 @@
                 $(document).mousemove( (event) => {  
                     if ( userID !== "" ) {
                         if (leftButtonDown) {
-
-                            const elem          = $("#Display");
-                            const position      = elem.position();
-                            const elemLeft      = position.left;
-                            const elemRight     = elemLeft + elem.width();
-                            const elemTop       = position.top;
-                            const elemBottom    = elemTop + elem.height();
-                            const userElem_HW   = $(".userElem").first().width() * 0.5;
-                            const userElem_HH   = $(".userElem").first().height() * 0.5;
-                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
-                            const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
-                            const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
-                            const dataObj       = getUserObj(   userID,
-                                                                0, 0, 0,
-                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
-                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                                                "");
-                            
-                            socket.emit("transformUpdate", dataObj);
-
-                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
-                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
+                            //
                         }
                     }
 
@@ -277,6 +268,77 @@
                     };
               });
             });
+
+            //functions for sending controller data
+            public void surveyMessage_Send(int _surveyAnswer)
+            {
+            //client
+        IntegerMessage intMess = new IntegerMessage();
+            intMess.value = _surveyAnswer;
+            NetworkServer.SendToAll(MESSAGE_TYPE_SURVEY, intMess);
+            }
+
+            public void endTrialMessage_Send()
+            {
+                //client
+                IntegerMessage intMess = new IntegerMessage();
+                intMess.value = 0;
+                NetworkServer.SendToAll(MESSAGE_TYPE_END_TRIAL, intMess);
+            }
+
+            public void sendHMDPos_Send( float _posX, float _posZ )
+            {
+            //client
+        HMDPosMessage posMess = new HMDPosMessage();
+            posMess.hmdPosX = _posX;
+            posMess.hmdPosZ = _posZ;
+            NetworkServer.SendToAll(MESSAGE_TYPE_HMD_POS, posMess);
+            }
+
+            //receive message methods
+            function showPillarMessage_Send(pillarIndex)
+            {
+              
+            }
+
+            void hidePillarMessage_Send(pillarIndex)
+            {
+                
+            }
+
+            void setViewModeMessage_Send(viewMode)
+            {
+        
+            }
+
+            void newExperimentMessage_Send()
+            {
+                
+            }
+
+            void endExperimentMessage_Receive()
+            {
+                
+            }
+
+            void newTrialMessage_Send(NetworkMessage message)
+            {
+               
+            }
+
+            void debugToggleMesssage_Receive(NetworkMessage message)
+            {
+                int recMess = message.ReadMessage<IntegerMessage>().value;
+            Debug.Log("Debug Toggle Message Received: " + recMess);
+
+            Main _main = GetComponent<Main>();
+            if (recMess == 1) {
+                _main.m_debugElements.SetActive(true);
+            }
+            else if (recMess == 0) {
+                _main.m_debugElements.SetActive(false);
+            }
+            }
 
         </script>
     </body>
