@@ -142,48 +142,118 @@
 
             //doc ready, let's send our movement
             $(document).ready(function () {
-                let leftButtonDown = false;
+                //
+                //start mouse /touch events stuff from https://www.safaribooksonline.com/blog/2012/04/18/mapping-mouse-events-and-touch-events-onto-a-single-event/ 
+                //
+                TouchMouseEvent = {
+                    DOWN: "touchmousedown",
+                    UP: "touchmouseup",
+                    MOVE: "touchmousemove"
+                }
 
-                $(document).mousemove( (event) => {  
-                    if ( userID !== "" ) {
-                        if (leftButtonDown) {
+                let normalizeEvent = (type, original, x, y) => {
+                    return $.Event(type, {
+                                        pageX: x,
+                                        pageY: y,
+                                        originalEvent: original
+                                    });
+                }
 
-                            const elem          = $("#Display");
-                            const position      = elem.position();
-                            const elemLeft      = position.left;
-                            const elemRight     = elemLeft + elem.width();
-                            const elemTop       = position.top;
-                            const elemBottom    = elemTop + elem.height();
-                            const userElem_HW   = $(".userElem").first().width() * 0.5;
-                            const userElem_HH   = $(".userElem").first().height() * 0.5;
-                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
-                            const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
-                            const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
-                            const dataObj       = getUserObj(   userID,
-                                                                0, 0, 0,
-                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
-                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                                                "");
-                            
-                            socket.emit("transformUpdate", dataObj);
-
-                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
-                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
-                        }
+                let onMouseEvent = (event) => {
+                    let type;
+            
+                    switch (event.type) {
+                        case "mousedown": type = TouchMouseEvent.DOWN; break;
+                        case "mouseup":   type = TouchMouseEvent.UP;   break;
+                        case "mousemove": type = TouchMouseEvent.MOVE; break;
+                        default:
+                            return;
                     }
-                });
+            
+                    const touchMouseEvent = normalizeEvent(type, event, event.pageX, event.pageY);
+                    $(event.target).trigger(touchMouseEvent);
+                }
 
-                $(document).mousedown( (event) => {  
-                	if(event.which === 1) { 
-                    	leftButtonDown = true;
-                     }
-                });
+                let onTouchEvent = (event) => {
 
-                $(document).mouseup( (event) => {  
-                	if(event.which === 1) { 
-                     	leftButtonDown = false;
+                    let type;
+
+                    switch (event.type) {
+                        case "touchstart": type = TouchMouseEvent.DOWN; break;
+                        case "touchend":   type = TouchMouseEvent.UP;   break;
+                        case "touchmove":  type = TouchMouseEvent.MOVE; break;
+                        default:
+                            return;
                     }
-                });
+
+                    const touch = event.originalEvent.touches[0];
+                    let touchMouseEvent;
+
+                    if (type == TouchMouseEvent.UP)
+                        touchMouseEvent = normalizeEvent(type, event, null, null);
+                    else
+                        touchMouseEvent = normalizeEvent(type, event, touch.pageX, touch.pageY);
+
+                    event.preventDefault();
+                    $(event.target).trigger(touchMouseEvent);
+                }
+
+                let jQueryDocument = $(document);
+                if ("ontouchstart" in window) {
+                    jQueryDocument.on("touchstart", onTouchEvent);
+                    jQueryDocument.on("touchmove", onTouchEvent);
+                    jQueryDocument.on("touchend", onTouchEvent);
+                } else {
+                    jQueryDocument.on("mousedown", onMouseEvent);
+                    jQueryDocument.on("mouseup", onMouseEvent);
+                    jQueryDocument.on("mousemove", onMouseEvent);
+                }
+
+                //
+                //end mouse /touch events stuff from https://www.safaribooksonline.com/blog/2012/04/18/mapping-mouse-events-and-touch-events-onto-a-single-event/ 
+                //
+                let mouseTouchDown = false;
+                let mouseTouchDrag = (event) => {
+                    if ( userID !== "" && mouseTouchDown ) {
+                        const elem          = $("#Display");
+                        const position      = elem.position();
+                        const elemLeft      = position.left;
+                        const elemRight     = elemLeft + elem.width();
+                        const elemTop       = position.top;
+                        const elemBottom    = elemTop + elem.height();
+                        const userElem_HW   = $(".userElem").first().width() * 0.5;
+                        const userElem_HH   = $(".userElem").first().height() * 0.5;
+                        const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
+                        const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
+                        const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
+                        const dataObj       = getUserObj(   userID,
+                                                            0, 0, 0,
+                                                            0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
+                                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                            "");
+                        
+                        socket.emit("transformUpdate", dataObj);
+
+                        //console.log(dataObj + " " + mappedY + " " + mappedZ);
+                        //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
+                    }
+                };
+
+                $("#Display").on(TouchMouseEvent.UP, (event) => { mouseTouchDown = false; });
+                $("#Display").on(TouchMouseEvent.DOWN, (event) => { mouseTouchDown = true; });
+                $("#Display").on(TouchMouseEvent.MOVE, mouseTouchDrag);
+
+                // $(document).mousedown( (event) => {  
+                // 	if(event.which === 1) { 
+                //     	touchMouseDown = true;
+                //      }
+                // });
+
+                // $(document).mouseup( (event) => {  
+                // 	if(event.which === 1) { 
+                //         touchMouseDown = false;
+                //     }
+                // });
 
                 //"game loop" update/draw code
                 setInterval(update, 1000/60);
