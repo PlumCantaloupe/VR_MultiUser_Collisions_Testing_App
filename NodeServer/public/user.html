@@ -126,8 +126,8 @@
                     let elem = $(userElemArr[i]);
                     if ( elem.attr("id") === userObj.id ) {
                         elem.remove();
+                        break;
                     }
-                    //break;
                 }
             }
 
@@ -145,7 +145,32 @@
                 let leftButtonDown = false;
 
                 $(document).mousemove( (event) => {  
-                    pointerMove(event);	
+                    if ( userID !== "" ) {
+                        if (leftButtonDown) {
+
+                            const elem          = $("#Display");
+                            const position      = elem.position();
+                            const elemLeft      = position.left;
+                            const elemRight     = elemLeft + elem.width();
+                            const elemTop       = position.top;
+                            const elemBottom    = elemTop + elem.height();
+                            const userElem_HW   = $(".userElem").first().width() * 0.5;
+                            const userElem_HH   = $(".userElem").first().height() * 0.5;
+                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
+                            const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
+                            const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
+                            const dataObj       = getUserObj(   userID,
+                                                                0, 0, 0,
+                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
+                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                                "");
+                            
+                            socket.emit("transformUpdate", dataObj);
+
+                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
+                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
+                        }
+                    }
                 });
 
                 $(document).mousedown( (event) => {  
@@ -162,7 +187,6 @@
 
                 //"game loop" update/draw code
                 setInterval(update, 1000/60);
-
                 function update() 
                 {
                		for ( let i = 0; i < usersArr.length; i++ ) {
@@ -190,37 +214,12 @@
                 	//event called before page closes
                   	return "Do you really want to close?";
               	};
-              });
             });
 
-			function pointerMove(event) 
-			{
-				if ( userID !== "" ) {
-                        if (leftButtonDown) {
-
-                            const elem          = $("#Display");
-                            const position      = elem.position();
-                            const elemLeft      = position.left;
-                            const elemRight     = elemLeft + elem.width();
-                            const elemTop       = position.top;
-                            const elemBottom    = elemTop + elem.height();
-                            const userElem_HW   = $(".userElem").first().width() * 0.5;
-                            const userElem_HH   = $(".userElem").first().height() * 0.5;
-                            const mappedX       = map(event.pageX, elemLeft + userElem_HW, elemRight - userElem_HW, 0.0, 1.0, true);
-                            const mappedY       = map(1.48, 0.0, 5.0, 0.0, 1.0, true);
-                            const mappedZ       = map(event.pageY, elemTop + userElem_HH, elemBottom - userElem_HH, 0.0, 1.0, true);
-                            const dataObj       = getUserObj(   userID,
-                                                                0, 0, 0,
-                                                                0.0, 0.0, 0.0, mappedX, mappedY, mappedZ, mappedX + 0.07, mappedY - 0.18, mappedZ, mappedX - 0.07, mappedY - 0.18, mappedZ,
-                                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                                                "");
-                            
-                            socket.emit("transformUpdate", dataObj);
-
-                            //console.log(dataObj + " " + mappedY + " " + mappedZ);
-                            //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
-                        }
-			}
+			// function pointerMove(event) 
+			// {
+				
+			// }
 
         </script>
     </body>
