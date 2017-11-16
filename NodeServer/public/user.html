@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8" />
         <title>user Test</title>
+        <meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="css/reset.css">
         <link rel="stylesheet" type="text/css" href="css/style.css">
         <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
@@ -20,26 +21,11 @@
 
         <script src="/socket.io/socket.io.js"></script>
         <script>
-            const LERP_VAL = 0.5;
-            let userID = "";
-            let socket = io();
+            const LERP_VAL 	= 0.5;
+            let userID 		= "";
+            let socket 		= io();
             let initialized = false;
-            let usersArr = new Array();
-
-            // !!want to load in JSOn object representing data we constantly send
-            //function getUserObj(id, x, y, z, r, g, b, data)
-            //{
-            //    let userObj = {};
-            //    userObj.id = id;
-            //    userObj.x = x;
-            //    userObj.y = y;
-            //    userObj.z = z;
-            //    userObj.r = r;
-            //    userObj.g = g;
-            //    userObj.b = b;
-            //    userObj.data = data;
-            //    return userObj;
-            //}
+            let usersArr 	= new Array();
 
             //just some consts for typed array access
             const R = 0;
@@ -100,46 +86,20 @@
                 return (start + percent * (end - start));
             }
 
-            //https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-            function uuidv4() {
-                return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-                );
-            }
-
-            //var socket = io("/namespace_display");
-            //socket.connect("http://localhost:8080");
-
             socket.on("connect", (userData) => {
-                //userID = uuidv4();
-                //socket.emit("newUser", {'id':userID});
                 socket.emit("newUser");
             });
 
-            socket.on("user_connect", (userData) => {
-                if ( userID === "" ) {
-                    userID = userData.id;
-                    console.log( "id received: " + userID );
-                }
-            });
-
-            // socket.on("user_disconnect", (data) => {
-            //     //!!TODO
-            // });
-
             socket.on("usersData", (data) => {
-                //this data will be in array form ...
-                //console.log("user:message: " + JSON.stringify(data)); 
                 usersArr = [...data.items];
 
+				//add any users already present before we start updating them
                 if ( userID !== "" && initialized === false ) {
                     for (let i = 0; i < usersArr.length; i++) {
                         addUser(usersArr[i]);
                     }
-                    initialized = true;
+                    initialized = true;	//lets not do this more than once ;)
                 }
-
-                //console.log(usersArr[0]);
             });
 
             socket.on("user_setID", (userData) => {
@@ -185,7 +145,57 @@
                 let leftButtonDown = false;
 
                 $(document).mousemove( (event) => {  
-                    if ( userID !== "" ) {
+                    pointerMove(event);	
+                });
+
+                $(document).mousedown( (event) => {  
+                	if(event.which === 1) { 
+                    	leftButtonDown = true;
+                     }
+                });
+
+                $(document).mouseup( (event) => {  
+                	if(event.which === 1) { 
+                     	leftButtonDown = false;
+                    }
+                });
+
+                //"game loop" update/draw code
+                setInterval(update, 1000/60);
+
+                function update() 
+                {
+               		for ( let i = 0; i < usersArr.length; i++ ) {
+                    	let userObj                 = usersArr[i];
+
+                       	//first check if there is element exist, and update if so
+                       	$(".userElem").each( (index, obj) => {
+                        		let elem = $(obj);
+                            		if ( elem.attr("id") === userObj.id ) {
+                                		const scalar_x = $("#Display").width() - $(".userElem").first().width();
+                                        const scalar_y = $("#Display").height() - $(".userElem").first().height();
+                                        const oldX = parseInt(elem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
+                                        const oldY = parseInt(elem.css("top"), 10);
+                                        const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
+                                        const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
+                                        elem.css("left", newX);
+                                        elem.css("top", newY);
+                              	}
+                     	});
+              		}
+             	}
+
+              	//close event
+               	window.onbeforeunload = function () {
+                	//event called before page closes
+                  	return "Do you really want to close?";
+              	};
+              });
+            });
+
+			function pointerMove(event) 
+			{
+				if ( userID !== "" ) {
                         if (leftButtonDown) {
 
                             const elem          = $("#Display");
@@ -210,106 +220,7 @@
                             //console.log(dataObj + " " + mappedY + " " + mappedZ);
                             //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
                         }
-                    }
-
-                    $(document).mousedown( (event) => {  
-                        if(event.which === 1) { 
-                            leftButtonDown = true;
-                        }
-                    });
-
-                    $(document).mouseup( (event) => {  
-                        if(event.which === 1) { 
-                            leftButtonDown = false;
-                        }
-                    });
-
-                    //"game loop" update/draw code
-                    
-                    setInterval(update, 1000/60);
-
-                    function update() 
-                    {
-                        // // Update the state of the world for the elapsed time since last render
-                        // if ($(".userElem").length > usersArr.length) {
-                        //     //someone has disconnected
-                        //     let idFound     = false;
-
-                        //     //iterate backwards so we don't remove in the middle of an array
-                        //     let userElemArr = $(".userElem").toArray();
-                        //     for (let i = userElemArr.length; i >= 0; i--) {
-                        //         let elem = $(userElemArr[i]);
-                        //         for ( let i = 0; i < usersArr.length; i++ ) {
-
-                        //             let userObj = usersArr[i];
-                        //             if ( elem.attr("id") === userObj.id ) {
-                        //                 idFound     = true;
-                        //             }
-
-                        //             if (!idFound) {
-                        //                 //remove this element
-                        //                 elem.remove();
-                        //             }
-                        //         }
-                        //     }
-                        // }
-                        // else if ($(".userElem").length < usersArr.length) {
-                        //     //someone has connected
-                        //     for ( let i = 0; i < usersArr.length; i++ ) {
-                        //         let userObj                 = usersArr[i];
-                        //         let hasBeenInitiatialized   = false;
-
-                        //         //first check if there is element exist, and update if so
-                        //         $(".userElem").each( (index, obj) => {
-                        //             let elem = $(obj);
-                        //             if ( elem.attr("id") === userObj.id ) {
-                        //                 hasBeenInitiatialized = true;
-                        //             }
-                        //         });
-
-                        //         if ( !hasBeenInitiatialized ) {
-                        //             //add new user
-                        //             let newElem = document.createElement('div');
-                        //             $(newElem).attr("id", userObj.id);
-                        //             $(newElem).addClass("userElem");
-                        //             $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
-                        //             $(newElem).appendTo("#Display");
-                        //         }
-                        //     }
-                        // }
-                        // else {
-                            for ( let i = 0; i < usersArr.length; i++ ) {
-                                let userObj                 = usersArr[i];
-
-                                //first check if there is element exist, and update if so
-                                $(".userElem").each( (index, obj) => {
-                                    let elem = $(obj);
-                                    if ( elem.attr("id") === userObj.id ) {
-                                        const scalar_x = $("#Display").width() - $(".userElem").first().width();
-                                        const scalar_y = $("#Display").height() - $(".userElem").first().height();
-                                        const oldX = parseInt(elem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
-                                        const oldY = parseInt(elem.css("top"), 10);
-                                        const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
-                                        const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
-                                        elem.css("left", newX);
-                                        elem.css("top", newY);
-                                    }
-                                });
-                            }
-                        // }
-                    }
-
-                    // function draw() {
-                    //     // Draw the state of the world
-                    // }
-
-                    //close event
-                    window.onbeforeunload = function () {
-                        //event called before page closes
-                        return "Do you really want to close?";
-                    };
-              });
-            });
+			}
 
         </script>
     </body>
