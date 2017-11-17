@@ -117,7 +117,7 @@ io.on('connection', (socket) => {
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                         ""); //use socket is for UUID ....
-            socket.emit("user_setID", userObj);
+            socket.emit("connection_setID", userObj);
             io.sockets.emit("user_connect", userObj);
             users.push( userObj ); //add new empty user with correct ID. We will update position later
 
@@ -126,7 +126,14 @@ io.on('connection', (socket) => {
     });
 
     socket.on("newController", (userData) => {
-        //console.log("message: " + data.message);
+        let userObj = getUserObj(   socket.id,
+                                    0.0, 0.0, 0.0,
+                                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                    ""); //use socket is for UUID ....
+        socket.emit("connection_setID", userObj);
+
+        console.log( "newController received " + socket.id );
     });
 
     //socket.on("posUpdate", (userData) => {

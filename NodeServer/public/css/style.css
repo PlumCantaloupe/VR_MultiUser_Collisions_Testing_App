@@ -40,8 +40,7 @@ button {
     position:absolute;
 }
 
-button:hover, button:focus 
-{
+button:hover, button:focus {
     background-color: #939393;
 }
 
@@ -57,23 +56,29 @@ button:hover, button:focus
   }
 }
 
-#DisplayWrapper
-{
+#DisplayWrapper {
     width: 80vw;
     height: 80vw;
     background-color: #fff;
     margin: 0 auto;
 }
 
-#Display
-{
+#Display {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-#MainCanvas
-{
+.pillarButton {
+    position: absolute;
+    width: 6vw;
+    height: 6vw;
+    margin: -3vw 0vw 0vw -3vw;
+    background-color:rgba(250, 15, 15, 0.796);
+    /*background-color:rgba(233, 143, 143, 0.796);*/
+}
+
+#MainCanvas  {
     width: 100%;
     height: 100%;
 }
@@ -91,12 +96,4 @@ button:hover, button:focus
 .threeAcross {
     margin: 8px 0.6666% 8px 0.6666%;
     width: 32%;
-}
-
-button:first-child {
-    /* margin-left: 0px; */
-}
-
-button:last-child {
-     /* margin-right: 0px;  */
 }

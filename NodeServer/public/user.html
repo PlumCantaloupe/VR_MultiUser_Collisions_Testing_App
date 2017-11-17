@@ -13,8 +13,21 @@
         <div id="Live_Section">
             <div id="DisplayWrapper">
                 <div id="Display">
-                    <!-- <div style="width:30px; height:30px; top:0px; left:30px; background-color:#aaa; position:absolute;" ></div> -->
-                    <!-- <div style="width:30px; height:30px; top:40px; left:100px; background-color:#000; position:absolute;" ></div> -->
+                    <div class="pillarButton" style="top:10.00%;    left:50.00%;"></div>
+                    <div class="pillarButton" style="top:15.36%;    left:70.00%;"></div>
+                    <div class="pillarButton" style="top:30.00%;    left:84.64%;"></div>
+
+                    <div class="pillarButton" style="top:50.00%;    left:90.00%;"></div>
+                    <div class="pillarButton" style="top:70.00%;    left:84.64%;"></div>
+                    <div class="pillarButton" style="top:84.64%;    left:70.00%;"></div>
+
+                    <div class="pillarButton" style="top:90.00%;    left:50.00%;"></div>
+                    <div class="pillarButton" style="top:84.64%;    left:30.00%;"></div>
+                    <div class="pillarButton" style="top:70.00%;    left:15.36%;"></div>
+
+                    <div class="pillarButton" style="top:50.00%;    left:10.00%;"></div>
+                    <div class="pillarButton" style="top:30.00%;    left:15.36%;"></div>
+                    <div class="pillarButton" style="top:15.36%;    left:30.00%;"></div>
                 </div>
             </div>
         </div>
@@ -102,7 +115,7 @@
                 }
             });
 
-            socket.on("user_setID", (userData) => {
+            socket.on("connection_setID", (userData) => {
                 if ( userID === "" ) {
                     userID = userData.id;
                     console.log( "id received: " + userID );
@@ -175,7 +188,6 @@
                 }
 
                 let onTouchEvent = (event) => {
-
                     let type;
 
                     switch (event.type) {
@@ -233,27 +245,12 @@
                                                             "");
                         
                         socket.emit("transformUpdate", dataObj);
-
-                        //console.log(dataObj + " " + mappedY + " " + mappedZ);
-                        //console.log(dataObj.pos_head[X] + " " + dataObj.pos_head[Y] + " " + dataObj.pos_head[Z]);
                     }
                 };
 
                 $("#Display").on(TouchMouseEvent.UP, (event) => { mouseTouchDown = false; });
                 $("#Display").on(TouchMouseEvent.DOWN, (event) => { mouseTouchDown = true; });
                 $("#Display").on(TouchMouseEvent.MOVE, mouseTouchDrag);
-
-                // $(document).mousedown( (event) => {  
-                // 	if(event.which === 1) { 
-                //     	touchMouseDown = true;
-                //      }
-                // });
-
-                // $(document).mouseup( (event) => {  
-                // 	if(event.which === 1) { 
-                //         touchMouseDown = false;
-                //     }
-                // });
 
                 //"game loop" update/draw code
                 setInterval(update, 1000/60);
@@ -264,19 +261,51 @@
 
                        	//first check if there is element exist, and update if so
                        	$(".userElem").each( (index, obj) => {
-                        		let elem = $(obj);
-                            		if ( elem.attr("id") === userObj.id ) {
-                                		const scalar_x = $("#Display").width() - $(".userElem").first().width();
-                                        const scalar_y = $("#Display").height() - $(".userElem").first().height();
-                                        const oldX = parseInt(elem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
-                                        const oldY = parseInt(elem.css("top"), 10);
-                                        const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
-                                        const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
-                                        elem.css("left", newX);
-                                        elem.css("top", newY);
-                              	}
+                            let userElem = $(obj);
+                            if ( userElem.attr("id") === userObj.id ) {
+                                const scalar_x = $("#Display").width() - $(".userElem").first().width();
+                                const scalar_y = $("#Display").height() - $(".userElem").first().height();
+                                const oldX = parseInt(userElem.css("left"), 10); //need tyo use parseInt with base10 to remove 'px' given by css attr. call
+                                const oldY = parseInt(userElem.css("top"), 10);
+                                const newX = lerp(oldX, userObj.pos_head[X] * scalar_x, LERP_VAL);
+                                const newY = lerp(oldY, userObj.pos_head[Z] * scalar_y, LERP_VAL);
+                                userElem.css("left", newX);
+                                userElem.css("top", newY);
+                            }
                      	});
-              		}
+                      }
+                      
+                      //now check for collisions with "this" user
+                      let userDims      = {width:0, height:0, x:0, y:0};
+                      let pillarDims    = {width:0, height:0, x:0, y:0};
+
+                      $(".userElem").each( (index_u, obj_u) => {
+                            let userElem = $(obj_u);
+                            if ( userElem.attr("id") === userID ) {
+                                userDims.width  = userElem.width();
+                                userDims.height = userElem.height();
+                                userDims.x      = userElem.offset().left + userDims.width/2;
+                                userDims.y      = userElem.offset().top + userDims.height/2;
+
+                                $(".pillarButton").each( (index_p, obj_p) => {
+                                    let pillarElem = $(obj_p);
+                                    pillarDims.width  = pillarElem.width();
+                                    pillarDims.height = pillarElem.height();
+                                    pillarDims.x      = pillarElem.offset().left + pillarDims.width/2;
+                                    pillarDims.y      = pillarElem.offset().top + pillarDims.height/2;
+
+                                    if (    ( Math.abs(userDims.x - pillarDims.x) <  userDims.width/2 + pillarDims.width/2 ) &&
+                                            ( Math.abs(userDims.y - pillarDims.y) <  userDims.height/2 + pillarDims.height/2 ) 
+                                    ){
+                                        pillarElem.css( "background-color", "rgba(233, 143, 143, 0.796)");
+                                    }
+                                    else {
+                                        pillarElem.css( "background-color", "rgba(250, 15, 15, 0.796)");
+                                    }
+                                });
+                                return false;;
+                            }
+                     	});
              	}
 
               	//close event
@@ -285,11 +314,6 @@
                   	return "Do you really want to close?";
               	};
             });
-
-			// function pointerMove(event) 
-			// {
-				
-			// }
 
         </script>
     </body>
