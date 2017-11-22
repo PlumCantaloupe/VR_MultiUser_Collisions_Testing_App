@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿<!-- 
+    
+-->
+
+<!DOCTYPE html>
 <html>
     <head>
         <title>user Test</title>
@@ -18,8 +22,21 @@
         <div id="Live_Section">
             <div id="DisplayWrapper">
                 <div id="Display">
-                    <!-- <div style="width:30px; height:30px; top:0px; left:30px; background-color:#aaa; position:absolute;" ></div> -->
-                    <!-- <div style="width:30px; height:30px; top:40px; left:100px; background-color:#000; position:absolute;" ></div> -->
+                    <div class="pillarButton" style="top:10.00%; left:50.00%;"></div>
+                    <div class="pillarButton" style="top:15.36%; left:70.00%;"></div>
+                    <div class="pillarButton" style="top:30.00%; left:84.64%;"></div>
+
+                    <div class="pillarButton" style="top:50.00%; left:90.00%;"></div>
+                    <div class="pillarButton" style="top:70.00%; left:84.64%;"></div>
+                    <div class="pillarButton" style="top:84.64%; left:70.00%;"></div>
+
+                    <div class="pillarButton" style="top:90.00%; left:50.00%;"></div>
+                    <div class="pillarButton" style="top:84.64%; left:30.00%;"></div>
+                    <div class="pillarButton" style="top:70.00%; left:15.36%;"></div>
+
+                    <div class="pillarButton" style="top:50.00%; left:10.00%;"></div>
+                    <div class="pillarButton" style="top:30.00%; left:15.36%;"></div>
+                    <div class="pillarButton" style="top:15.36%; left:30.00%;"></div>
                 </div>
             </div>
         </div>
@@ -49,6 +66,8 @@
             const Y = 1;
             const Z = 2;
             const W = 3;
+
+            const CLICK_COLOR = "rgba(0, 0, 255, 1.0)";
 
             function getUserObj(id,
 
@@ -151,10 +170,33 @@
                 $(newElem).addClass("userElem");
                 $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
                 $(newElem).appendTo("#Display");
+
+                $(newElem).click( () => {
+
+                });
             }
 
             //doc ready, let's send our movement
-            $(document).ready(function () {
+            $(document).ready( () => {
+
+                $(".pillarButton").each( (index, obj) => {
+                    let pillarButton = $(obj);
+                    pillarButton.attr("prev-background-color", "");
+
+                    pillarButton.click( () => {
+                        if ( pillarButton.attr("prev-background-color") === "" ) {
+                            console.log("click ON");
+                            pillarButton.attr("prev-background-color", pillarButton.css("background-color"));
+                            pillarButton.css("background-color", CLICK_COLOR);
+                        }
+                        else {
+                            console.log("click OFF");
+                            pillarButton.css("background-color", pillarButton.attr("prev-background-color"));
+                            pillarButton.attr("prev-background-color", "");
+                        }
+                    });
+                });
+                
 
                 //"game loop" update/draw code
                 setInterval(update, 1000/60);
@@ -181,7 +223,7 @@
              	}
 
               	//close event
-               	window.onbeforeunload = function () {
+               	window.onbeforeunload = () => {
                 	//event called before page closes
                   	return "Do you really want to close?";
               	};
