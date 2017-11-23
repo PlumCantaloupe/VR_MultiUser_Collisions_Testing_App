@@ -59,6 +59,20 @@ public class MUFramework : MonoBehaviour
 
 		io.On("user_connect", (SocketIOEvent e) => {
 			UserObject userObj = JSONHelper.FromJsonObject<UserObject>(e.data);
+            addUser(userObj);
+        });
+
+        io.On("user_disconnect", (SocketIOEvent e) => {
+			UserObject userObj = JSONHelper.FromJsonObject<UserObject>(e.data);
+            removeUser(userObj);
+        });
+
+        io.On("setAvatarMode", (SocketIOEvent e) => {
+
+        });
+
+        io.On("connection_setID", (SocketIOEvent e) => {
+			UserObject userObj = JSONHelper.FromJsonObject<UserObject>(e.data);
 
             thisUserObj.id = userObj.id;
             thisUserObj.color[INDEX.R] = userObj.color[INDEX.R];
@@ -93,6 +107,39 @@ public class MUFramework : MonoBehaviour
 		io.Connect();
 	}
 	
+    void addUser(UserObject userObj)
+    {
+        GameObject gameObj = (GameObject)Instantiate(Resources.Load("prefabs/Avatar"));
+
+        //find children
+        GameObject model_body = gameObj.transform.Find("Avatar_Body").gameObject;
+        GameObject model_hand_L = gameObj.transform.Find("Avatar_Hand_L").gameObject;
+        GameObject model_hand_R = gameObj.transform.Find("Avatar_Hand_R").gameObject;
+        GameObject boundingBox = gameObj.transform.Find("BoundingBox").gameObject;
+
+        //initialize
+        gameObj.GetComponent<Avatar>().model_body = model_body;  //set first!
+        gameObj.GetComponent<Avatar>().model_hand_L = model_hand_L;  //set first!
+        gameObj.GetComponent<Avatar>().model_Hand_R = model_hand_R;  //set first!
+        gameObj.GetComponent<Avatar>().boundingBox = boundingBox;   //set first!
+
+        gameObj.GetComponent<Avatar>().setUserObject(userObj);      //now set this 
+    }
+
+    void removeUser(UserObject userObj)
+    {
+        GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject gameObj in userElemArr) {
+            if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
+                Destroy(gameObj);
+            }
+        }
+    }
+
+    void changeAvatarMode(int mode) 
+    {
+    }
+
 	// Update is called once per frame
 	void Update () 
     {
@@ -129,83 +176,17 @@ public class MUFramework : MonoBehaviour
 
         io.Emit("transformUpdate", JSONHelper.ToJsonObject<UserObject>(thisUserObj));
 
-        //!!TDOD: Just checking NumUsers can lead to bugs as things may change ...
-
         //
         //now update all "other" avatar positions
         //
         GameObject[] userElemArr = GameObject.FindGameObjectsWithTag("Player");
-        if (userElemArr.Length > usersArr.Count) {
-            Debug.Log("someone disconnected");
-            //!!someone has disconnected
-            bool idFound = false;
-
-            //iterate backwards so we don't remove in the middle of an array
-            for ( int i = userElemArr.Length-1; i >= 0; i-- ) {
-                GameObject gameObj = (GameObject)userElemArr[i];
-                for ( int j = 0; j < usersArr.Count; j++ ) {
-                    UserObject userObj = usersArr[j];
-                    if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
-                        idFound = true;
-                        //break;
-                    }
-                }
-
-                if (!idFound) {
-                    Debug.Log("Deleting Player Object");
-                    Destroy( gameObj );
-                    //break;
+        foreach (GameObject gameObj in userElemArr) {
+            foreach (UserObject userObj in usersArr ) {
+                if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
+                    gameObj.GetComponent<Avatar>().setUserObject(userObj);
                 }
             }
-
-		}
-		else if (userElemArr.Length < usersArr.Count) {
-			//!!someone has connected
-            Debug.Log("someone connected: " + userElemArr.Length + " " + usersArr.Count);
-
-            foreach ( UserObject userObj in usersArr ) {
-                //only go ahead if we are not trying to create "this" avatar again
-                bool hasBeenInitiatialized = false;
-
-                //first check if there is element exist, and update if so
-                foreach (GameObject gameObj in userElemArr) {
-                    if (gameObj.GetComponent<Avatar>().getID() == userObj.id) {
-                        hasBeenInitiatialized = true;
-                        //break;
-                    }
-                }
-
-                //if not initialized yet add avatar object
-                if (!hasBeenInitiatialized) {
-                    GameObject gameObj = (GameObject)Instantiate(Resources.Load("prefabs/Avatar"));
-
-                    //find children
-                    GameObject model_body = gameObj.transform.Find("Avatar_Body").gameObject;
-                    GameObject model_hand_L = gameObj.transform.Find("Avatar_Hand_L").gameObject;
-                    GameObject model_hand_R = gameObj.transform.Find("Avatar_Hand_R").gameObject;
-                    GameObject boundingBox = gameObj.transform.Find("BoundingBox").gameObject;
-
-                    //initialize
-                    gameObj.GetComponent<Avatar>().model_body = model_body;  //set first!
-                    gameObj.GetComponent<Avatar>().model_hand_L = model_hand_L;  //set first!
-                    gameObj.GetComponent<Avatar>().model_Hand_R = model_hand_R;  //set first!
-                    gameObj.GetComponent<Avatar>().boundingBox = boundingBox;   //set first!
-
-                    gameObj.GetComponent<Avatar>().setUserObject(userObj);      //now set this                                                   //break;
-                }
-            }
-		}
-		else {
-			//update all positions
-            //Debug.Log("update positions");
-			foreach (GameObject gameObj in userElemArr) {
-				foreach (UserObject userObj in usersArr ) {
-                    if ( gameObj.GetComponent<Avatar>().getID() == userObj.id ) {
-                        gameObj.GetComponent<Avatar>().setUserObject(userObj);
-                    }
-				}
-			}
-		}
+        }
 	}
 
     public void setUserCol(Color _matCol)
