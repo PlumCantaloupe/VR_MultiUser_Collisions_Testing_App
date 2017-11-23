@@ -23,6 +23,7 @@
 }
 
 button {
+    background: none;
     border: 0px;
     padding: 10px;
     background-color: #727272;
@@ -32,15 +33,17 @@ button {
     letter-spacing: 0em;
     word-spacing: 0em;
     font-size: 30px;
+    border-radius: 0%;
 }
 
-.highlightCircle {
-    width: 3vw;
-    height: 3vw;
-    -webkit-border-radius: 25px;
-    -moz-border-radius: 25px;
-    border-radius: 25px;
-    background: rgb(255, 255, 116);
+button:active, button:visited, button:link, button:focus {
+    background: none;
+    background-color: #727272;
+    outline: none;
+}
+
+button:hover {
+    background-color: #939393;
 }
 
 .userElem {
@@ -49,8 +52,36 @@ button {
     position:absolute;
 }
 
-button:hover, button:focus {
-    background-color: #939393;
+.userHead
+{
+    position: absolute;
+    top: 1.5vw;
+    left: 3.75vw;
+    width: 2.5vw;
+    height: 2.5vw;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 1);
+}
+
+.userBody
+{
+    position: absolute;
+    top: 4.5vw;
+    left: 3.25vw;
+    width: 3.5vw;
+    height: 4vw;
+    border-radius: 40% 40% 0% 0%;
+    background-color: rgba(0, 0, 0, 1);;
+}
+
+.userBoundingBox
+{
+    position: absolute;
+    top: 0vw;
+    left: 0vw;
+    width: 10vw;
+    height: 10vw;
+    box-shadow:inset 0vw 0vw 0vw 1vw rgba(0, 0, 0, 1);
 }
 
 @media (min-width: 600px) {
@@ -94,6 +125,8 @@ button:hover, button:focus {
 
 .oneAcross {
     margin: 8px 0.6666% 8px 0.6666%;
+    margin-top: 0px;
+    padding: 14px;
     width: 98.6666%;
 }
 

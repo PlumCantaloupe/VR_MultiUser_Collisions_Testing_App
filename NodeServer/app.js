@@ -125,7 +125,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on("newController", (userData) => {
+    socket.on("newController", () => {
         let userObj = getUserObj(   socket.id,
                                     0.0, 0.0, 0.0,
                                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -140,6 +140,11 @@ io.on('connection', (socket) => {
     socket.on("transformUpdate", (userData) => {
         //console.log("updating user position");
         updateUserTransformations(userData);
+    });
+
+    socket.on("modeChange", (data) => {
+        console.log( data );
+        io.sockets.emit("setAvatarMode", data);
     });
 
     //infinite loop with a millisecond delay (but only want one loop running ...)

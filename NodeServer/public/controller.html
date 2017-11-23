@@ -51,11 +51,12 @@
 
         <script src="/socket.io/socket.io.js"></script>
         <script>
-            const LERP_VAL 	= 0.5;
-            let userID 		= "";
-            let socket 		= io();
-            let initialized = false;
-            let usersArr 	= new Array();
+            const LERP_VAL 	        = 0.5;
+            let userID 		        = "";
+            let socket 		        = io();
+            let initialized         = false;
+            let usersArr 	        = new Array();
+            let selectedUserID      = "";
 
             //just some consts for typed array access
             const R = 0;
@@ -67,7 +68,11 @@
             const Z = 2;
             const W = 3;
 
-            const CLICK_COLOR = "rgba(0, 0, 255, 1.0)";
+            const MODE_AVATAR       = 0;
+            const MODE_BOUNDINGBOX  = 1;
+            const MODE_HYBRID       = 2;
+
+            const CLICK_COLOR       = "rgba(0, 0, 255, 1.0)";
 
             function getUserObj(id,
 
@@ -151,6 +156,35 @@
                 removeUser(userData);
             });
 
+            socket.on("setAvatarMode", (data) => {
+                console.log("set display mode: " + data);
+                changeAvatarMode(data);
+            });
+
+            function changeAvatarMode(mode) {
+                switch (mode) {
+                    case MODE_AVATAR: {
+                        $(".userHead").show();
+                        $(".userBody").show();
+                        $(".userBoundingBox").hide();
+                    }
+                    break;
+                    case MODE_BOUNDINGBOX: {
+                        $(".userHead").hide();
+                        $(".userBody").hide();
+                        $(".userBoundingBox").show();
+
+                    }
+                    break;
+                    case MODE_HYBRID: {
+                        $(".userHead").show();
+                        $(".userBody").show();
+                        $(".userBoundingBox").show();
+                    }
+                    break;
+                };
+            }
+
             function removeUser(userObj) 
             {
                 let userElemArr = $(".userElem").toArray();
@@ -165,20 +199,92 @@
 
             function addUser(userObj) 
             {
-                let newElem = document.createElement('div');
-                $(newElem).attr("id", userObj.id);
-                $(newElem).addClass("userElem");
-                $(newElem).css("background-color", "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")");
-                $(newElem).appendTo("#Display");
+                const userColorStr = "rgb(" + userObj.color[R] + "," + userObj.color[G] + "," + userObj.color[B] + ")";
 
-                $(newElem).click( () => {
+                //create main user element
+                let newUserElem = document.createElement('div');
+                $(newUserElem).attr("id", userObj.id);
+                $(newUserElem).addClass("userElem");
+                $(newUserElem).appendTo("#Display");
 
+                //create user boundingbox element
+                let newBoundingBox = document.createElement('div');
+                $(newBoundingBox).addClass("userBoundingBox"); //remove / add
+                $(newBoundingBox).css("box-shadow", "inset 0vw 0vw 0vw 1vw " + userColorStr);
+                $(newUserElem).append( $(newBoundingBox) );
+
+                //create user avatar element
+                let newUserHead = document.createElement('div');
+                $(newUserHead).addClass("userHead");
+                $(newUserHead).css("background-color", userColorStr);
+                $(newUserElem).append( $(newUserHead) );
+
+                let newUserBody = document.createElement('div');
+                $(newUserBody).addClass("userBody");
+                $(newUserBody).css("background-color", userColorStr);
+                $(newUserElem).append( $(newUserBody) );
+
+                $(newUserElem).click( (event) => {
+                    selectedUserJNode = $(newUserElem).attr("id");
+                    $(".userElem").css("background-color", "rgba(0, 0, 0, 0)");
+                    $(newUserElem).css("background-color", "rgba(252, 235, 2, 0.5)");
                 });
             }
 
             //doc ready, let's send our movement
             $(document).ready( () => {
 
+                //set up buttons
+                //new experiment
+                $("#Exp_New_B").click( (event) => {
+                    
+                });
+
+                //end experiment
+                $("#Exp_End_B").click( (event) => {
+
+                });
+
+                //debug toggle
+                $("#Debug_B").click( (event) => {
+
+                });
+
+                //avatar mode
+                $("#Mode_Avatar_B").click( (event) => {
+                    $("#Mode_Avatar_B").css("background-color", "#cacaca");
+                    $("#Mode_BB_B").css("background-color", "#727272");
+                    $("#Mode_Hybrid_B").css("background-color", "#727272");
+
+                    socket.emit("modeChange", MODE_AVATAR);
+                });
+
+                //boundingBox mode
+                $("#Mode_BB_B").click( (event) => {
+                    $("#Mode_Avatar_B").css("background-color", "#727272");
+                    $("#Mode_BB_B").css("background-color", "#cacaca");
+                    $("#Mode_Hybrid_B").css("background-color", "#727272");
+
+                    socket.emit("modeChange", MODE_BOUNDINGBOX);
+                });
+
+                //hybrid mode
+                $("#Mode_Hybrid_B").click( (event) => {
+                    $("#Mode_Avatar_B").css("background-color", "#727272");
+                    $("#Mode_BB_B").css("background-color", "#727272");
+                    $("#Mode_Hybrid_B").css("background-color", "#cacaca");
+
+                    socket.emit("modeChange", MODE_HYBRID);
+                });
+
+                $("#Mode_Hybrid_B").click(); //default at hybrid mode
+
+                //new trial
+                $("#Trial_New_B").click( (event) => {
+
+                });
+
+                //set up pillars
                 $(".pillarButton").each( (index, obj) => {
                     let pillarButton = $(obj);
                     pillarButton.attr("prev-background-color", "");
@@ -197,7 +303,6 @@
                     });
                 });
                 
-
                 //"game loop" update/draw code
                 setInterval(update, 1000/60);
                 function update() 
