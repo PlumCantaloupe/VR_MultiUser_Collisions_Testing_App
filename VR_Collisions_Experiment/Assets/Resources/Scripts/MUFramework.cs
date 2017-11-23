@@ -32,6 +32,8 @@ public class MUFramework : MonoBehaviour
     public UserObject thisUserObj       = new UserObject();
     public playAreaSize playAreaSize    = new playAreaSize();
 
+    bool initialized = false;
+
     //lets keep refs to avatar pieces
     Color avatar_origCol;
     GameObject avatar_model = null;
@@ -68,7 +70,7 @@ public class MUFramework : MonoBehaviour
         });
 
         io.On("setAvatarMode", (SocketIOEvent e) => {
-
+            changeAvatarMode(int.Parse(e.data));
         });
 
         io.On("connection_setID", (SocketIOEvent e) => {
@@ -101,6 +103,14 @@ public class MUFramework : MonoBehaviour
                 if ( userObjs[i].id != thisUserObj.id) {
                     usersArr.Add((UserObject)userObjs[i]);
                 }
+            }
+
+            //populate users already connected when this one initializes once ...
+            if ( thisUserObj != null && initialized == false ) {
+                foreach ( UserObject userObj in usersArr ) {
+                    addUser( userObj );
+                }
+                initialized = true;
             }
 		});
 		
@@ -138,6 +148,7 @@ public class MUFramework : MonoBehaviour
 
     void changeAvatarMode(int mode) 
     {
+        Debug.Log(mode);
     }
 
 	// Update is called once per frame
